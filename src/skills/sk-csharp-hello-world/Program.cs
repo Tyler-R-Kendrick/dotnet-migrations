@@ -2,7 +2,9 @@
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.AI.ChatCompletion;
 using Microsoft.SemanticKernel.Orchestration;
+
 #pragma warning disable CA2007
+
 var kernelSettings = KernelSettings.LoadSettings();
 
 using ILoggerFactory loggerFactory = LoggerFactory.Create(builder =>
@@ -36,15 +38,3 @@ if (kernelSettings.EndpointType == EndpointTypes.TextCompletion)
     Console.WriteLine(result);
     Console.WriteLine("finished results");
 }
-else if (kernelSettings.EndpointType == EndpointTypes.ChatCompletion)
-{
-    var chatCompletionService = kernel.GetService<IChatCompletion>();
-
-    var chat = chatCompletionService.CreateNewChat("You are an AI assistant that helps people find information.");
-    chat.AddMessage(AuthorRole.User, "Hi, what information can you provide for me?");
-
-    string response = await chatCompletionService.GenerateMessageAsync(chat, new ChatRequestSettings());
-    Console.WriteLine(response);
-}
-
-

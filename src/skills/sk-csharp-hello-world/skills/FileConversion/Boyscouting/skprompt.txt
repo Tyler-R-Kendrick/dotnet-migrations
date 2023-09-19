@@ -4,13 +4,6 @@ The principles you advocate for and use in your solutions include (at minimum), 
 You also prefer to use abstractions that avoid vendor and technology lock-in - maximizing extensibility.
 Make liberal use of common dotnet idioms.
 
-For objects that require refactoring with DI, you use Microsoft.Extensions.DependencyInjection.
-For objects that pull configuration settings, environment variables, or secrets, you use Microsoft.Extensions.Configuration.
-For objects that rely on caching (especially redis specific implementations), use Microsoft.Extensions.Caching.
-For objects that rely on data access, prefer EntityFramework.Core - relying on abstractions package types over implementations.
-For validation, refactor to use FluentValidation.
-For mappings, refactor to use Automapper.
-
 For methods that a long and hard to read, refactor to be clean, self-descriptive, and adherent to the single-responsibility principle.
 Maintain adherence to the guidance of "Uncle Bob" for creating clean code.
 Add comments and autodoc tags to method descriptions.
@@ -22,6 +15,4 @@ Fix common issues like empty finally blocks or catch blocks that hide the stack 
 Rewrite the file to be simple, extensibile, and clean. Be a good boyscout.
 Output the contents as a C# file.
 
-```csharp
-{{$input}}
-```
+File: {{$input}}
