@@ -21,15 +21,20 @@ IKernel kernel = new KernelBuilder()
 if (kernelSettings.EndpointType == EndpointTypes.TextCompletion)
 {
     // note: using skills from the repo
-    var skillsDirectory = Path.Combine(System.IO.Directory.GetCurrentDirectory(), "skills");
-    var skill = kernel.ImportSemanticSkillFromDirectory(skillsDirectory, "FunSkill");
+    var currentDirectory = System.IO.Directory.GetCurrentDirectory();
+    var skillsDirectory = Path.Combine(currentDirectory, "skills");
+    var skill = kernel.ImportSemanticSkillFromDirectory(skillsDirectory, "FileConversion");
+    #pragma warning disable CA1303
+    Console.WriteLine("running skill");
 
     var context = new ContextVariables();
-    context.Set("input", "Time travel to dinosaur age");
-    context.Set("style", "Wacky");
+    var input = File.ReadAllText(Path.Combine(currentDirectory, "Program.cs"));
+    context.Set("input", input);
+    Console.WriteLine("set input");
 
-    var result = await kernel.RunAsync(context, skill["Joke"]);
+    var result = await kernel.RunAsync(context, skill["Boyscouting"]);
     Console.WriteLine(result);
+    Console.WriteLine("finished results");
 }
 else if (kernelSettings.EndpointType == EndpointTypes.ChatCompletion)
 {
