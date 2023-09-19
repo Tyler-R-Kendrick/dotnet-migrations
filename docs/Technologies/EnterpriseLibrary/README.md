@@ -6,7 +6,6 @@ Microsoft Enterprise Library has been a collection of application blocks designe
 
 [Archive](https://github.com/microsoftarchive/enterprise-library)
 
-
 ## Application Blocks
 
 ### Data Access Block

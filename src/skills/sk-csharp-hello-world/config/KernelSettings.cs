@@ -37,17 +37,25 @@ internal class KernelSettings
     /// </summary>
     internal static KernelSettings LoadSettings()
     {
+        KernelSettings GetSettings(Func<IConfigurationBuilder, IConfigurationBuilder>? builder = null)
+            => (builder ??= x => x)(new ConfigurationBuilder())
+                .AddUserSecrets<KernelSettings>()
+                .Build().Get<KernelSettings>()
+                ?? throw new InvalidDataException($"Invalid semantic kernel settings in '{DefaultConfigFile}', please provide configuration settings using instructions in the README.");
+  
         try
         {
             if (File.Exists(DefaultConfigFile))
             {
-                return FromFile(DefaultConfigFile);
+                return GetSettings(x => x
+                    .SetBasePath(System.IO.Directory.GetCurrentDirectory())
+                    .AddJsonFile(DefaultConfigFile, optional: true, reloadOnChange: true));
             }
             //TODO: Ignore CA1303
             #pragma warning disable CA1303
             Console.WriteLine($"Semantic kernel settings '{DefaultConfigFile}' not found, attempting to load configuration from user secrets.");
 
-            return FromUserSecrets();
+            return GetSettings();
         }
         catch (InvalidDataException ide)
         {
@@ -57,37 +65,5 @@ internal class KernelSettings
             );
             throw new InvalidOperationException(ide.Message);
         }
-    }
-
-    /// <summary>
-    /// Load the kernel settings from the specified configuration file if it exists.
-    /// </summary>
-    internal static KernelSettings FromFile(string configFile = DefaultConfigFile)
-    {
-        if (!File.Exists(configFile))
-        {
-            throw new FileNotFoundException($"Configuration not found: {configFile}");
-        }
-
-        var configuration = new ConfigurationBuilder()
-            .SetBasePath(System.IO.Directory.GetCurrentDirectory())
-            .AddJsonFile(configFile, optional: true, reloadOnChange: true)
-            .Build();
-
-        return configuration.Get<KernelSettings>()
-               ?? throw new InvalidDataException($"Invalid semantic kernel settings in '{configFile}', please provide configuration settings using instructions in the README.");
-    }
-
-    /// <summary>
-    /// Load the kernel settings from user secrets.
-    /// </summary>
-    internal static KernelSettings FromUserSecrets()
-    {
-        var configuration = new ConfigurationBuilder()
-            .AddUserSecrets<KernelSettings>()
-            .Build();
-
-        return configuration.Get<KernelSettings>()
-               ?? throw new InvalidDataException("Invalid semantic kernel settings in user secrets, please provide configuration settings using instructions in the README.");
     }
 }
