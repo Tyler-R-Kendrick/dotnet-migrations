@@ -49,7 +49,10 @@ rootCommand.SetHandler(async (directory, skillName, output) => {
     context.Set("input", input);
     Console.WriteLine("set input");
 
-    var result = await kernel.RunAsync(context, skill[skillName ?? "Boyscouting"]);
+    var task = (skillName is not null)
+        ? kernel.RunAsync(context, skill[skillName ?? "Boyscouting"])
+        : kernel.RunAsync(context, skill.Values.ToArray());
+    var result = await task;
     Console.WriteLine(result);
     Console.WriteLine("finished results");
 }, directoryOption, skillOption, outputOption);
