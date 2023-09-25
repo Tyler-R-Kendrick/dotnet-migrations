@@ -8,18 +8,10 @@ namespace SKCLI;
 #pragma warning disable CA2007
 internal static class KernelFactory
 {
-    internal static IKernel BuildKernel(KernelSettings settings) 
+    internal static IKernel BuildKernel(KernelSettings settings, ILogger logger) 
     {
-        using ILoggerFactory loggerFactory = LoggerFactory.Create(builder =>
-        {
-            builder
-                .SetMinimumLevel(settings.LogLevel ?? LogLevel.Warning)
-                .AddConsole()
-                .AddDebug();
-        });
-
         IKernel kernel = new KernelBuilder()
-            .WithLogger(loggerFactory.CreateLogger<IKernel>())
+            .WithLogger(logger)
             .WithCompletionService(settings)
             .Build();
         return kernel;
