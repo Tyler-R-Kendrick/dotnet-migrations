@@ -67,7 +67,10 @@ public static class CommandFactory
         });
         var logger = loggerFactory.CreateLogger<IKernel>();
         var kernel = KernelFactory.BuildKernel(kernelSettings, logger);
-        BuildSkillCommands(kernel, rootCommand, new DirectoryInfo(skillsDirectory));
+        foreach(var subdir in new DirectoryInfo(skillsDirectory).GetDirectories())
+        {
+            BuildSkillCommands(kernel, rootCommand, subdir);
+        }
         return rootCommand;
     }
 
