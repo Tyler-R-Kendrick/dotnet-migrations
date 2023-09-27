@@ -6,72 +6,120 @@ using Microsoft.SemanticKernel.Orchestration;
 using Microsoft.SemanticKernel.SkillDefinition;
 using System.Linq;
 using System.Diagnostics.Contracts;
+
 namespace SKCLI;
+
 #pragma warning disable CS3001
+/// <summary>
+/// This class is responsible for generating commands
+/// </summary>
 public static class CommandFactory
 {
-    public static void BuildSkillCommands(
+    /// <summary>
+    /// Builds a single parameter for a command.
+    /// </summary>
+    /// <param name="parameterView"></param>
+    /// <returns></returns>
+    public static Option BuildSkillCommandParameter(ParameterView parameterView)
+    {
+        Contract.Assert(parameterView is not null);
+        return new Option<string?>($"--{parameterView.Name}",
+                    () => parameterView.DefaultValue,
+                    parameterView.Description);
+    }
+
+    /// <summary>
+    /// Builds a single command from a skill.
+    /// </summary>
+    /// <param name="skill"></param>
+    /// <param name="onExecute"></param>
+    /// <returns></returns>
+    public static Command BuildSkillCommand(
+        ISKFunction skill,
+        Action<SKContext> onExecute) 
+    {
+        Contract.Assert(skill is not null);
+        var command = new Command($"{skill.Name}", skill.Description);
+        var parameters = skill.Describe().Parameters;
+        foreach(var @param in parameters)
+        {
+            var option = new Option<string?>($"--{@param.Name}",
+                () => @param.DefaultValue,
+                @param.Description);
+            command.AddOption(option);
+        }
+        command.SetHandler(async () =>
+        {
+            var result = await skill.InvokeAsync().ConfigureAwait(false);
+            onExecute(result);
+        });
+        return command;
+    }
+
+    /// <summary>
+    /// Build all commands from skills in a directory.
+    /// </summary>
+    /// <param name="kernel"></param>
+    /// <param name="directoryInfo"></param>
+    /// <param name="onExecute"></param>
+    /// <returns></returns>
+    public static IEnumerable<Command> BuildSkillCommands(
         IKernel kernel,
-        RootCommand rootCommand,
-        DirectoryInfo directoryInfo) 
+        DirectoryInfo directoryInfo,
+        Action<SKContext> onExecute) 
     {
         Contract.Assert(directoryInfo != null);
-        foreach(var directory in directoryInfo.GetDirectories().Distinct())
+        foreach(var directory in directoryInfo.GetDirectories())
         {
-            Console.WriteLine(directory);
             var skills = kernel.ImportSemanticSkillFromDirectory(
                 directoryInfo.Name,
                 directory.Name);
             foreach(var (key, skill) in skills)
             {
-                Contract.Assert(rootCommand != null);
-                if(rootCommand.Children.Any(x => x.Name == skill.SkillName))
-                    continue;
-                var command = new Command(skill.SkillName, skill.Description);
-                var parameters = skill.Describe().Parameters;
-                foreach(var @param in parameters)
-                {
-                    var option = new Option<string?>(@param.Name,
-                        () => @param.DefaultValue,
-                        @param.Description);
-                    command.AddOption(option);
-                }
-                command.SetHandler(async () =>
-                    await skill.InvokeAsync().ConfigureAwait(false));
-                rootCommand.Add(command);
+                yield return BuildSkillCommand(skill, onExecute);
             }
         }
     }
-    public static RootCommand BuildRootCommand()
+
+    /// <summary>
+    /// Build a root command.
+    /// </summary>
+    /// <param name="onExecute"></param>
+    /// <param name="kernelSettings"></param>
+    /// <param name="logger"></param>
+    /// <returns></returns>
+    public static RootCommand BuildRootCommand(
+        Action<SKContext> onExecute,
+        KernelSettings kernelSettings,
+        ILogger logger)
     {
-        var rootCommand = new System.CommandLine.RootCommand("Execute skills with the semantic kernal.");
-        rootCommand.Name = "semker";
-        var skillOption = new Option<string?>(
+        var rootCommand = new RootCommand("Execute skills with the semantic kernal.")
+        {
+            Name = "semker"
+        };
+        rootCommand.AddOption(new Option<string?>(
             name: "--skill",
             description: "The skill to execute.")
-            {
-                IsRequired = true
-            };
-        rootCommand.AddOption(skillOption);
-
-        var currentDirectory = System.IO.Directory.GetCurrentDirectory();
-        var skillsDirectory = Path.Combine(currentDirectory, "skills");
-        Contract.Assert(Directory.Exists(skillsDirectory));
-        var kernelSettings = KernelSettings.LoadSettings();
-        using ILoggerFactory loggerFactory = LoggerFactory.Create(builder =>
         {
-            builder
-                .SetMinimumLevel(kernelSettings.LogLevel ?? LogLevel.Warning)
-                .AddConsole()
-                .AddDebug();
+            IsRequired = true
         });
-        var logger = loggerFactory.CreateLogger<IKernel>();
+
+        var skillDirInfo = GetSkillDirectory();
+        Contract.Assert(skillDirInfo.Exists);
         var kernel = KernelFactory.BuildKernel(kernelSettings, logger);
-        foreach(var subdir in new DirectoryInfo(skillsDirectory).GetDirectories())
+        var subCommands = BuildSkillCommands(kernel, skillDirInfo, onExecute);
+        foreach(var subCommand in subCommands)
         {
-            BuildSkillCommands(kernel, rootCommand, subdir);
+            if(rootCommand.Contains(subCommand)) continue;
+            rootCommand.Add(subCommand);
         }
         return rootCommand;
     }
 
+    private static DirectoryInfo GetSkillDirectory()
+    {
+        var currentDirectory = Directory.GetCurrentDirectory();
+        var skillsDirectory = Path.Combine(currentDirectory, "skills");
+        return new DirectoryInfo(skillsDirectory);
+    }
 }

@@ -4,12 +4,15 @@ using Microsoft.Extensions.Logging;
 
 [assembly: CLSCompliant(true)]
 #pragma warning disable CA1812
-internal class KernelSettings
+#pragma warning disable CS1591
+
+namespace SKCLI;
+public class KernelSettings
 {
     public const string DefaultConfigFile = "config/appsettings.json";
 
     [JsonPropertyName("endpointType")]
-    public string EndpointType { get; set; } = EndpointTypes.ChatCompletion;
+    public string EndpointType { get; set; } = "text-completion";
 
     [JsonPropertyName("serviceType")]
     public string ServiceType { get; set; } = string.Empty;
@@ -35,7 +38,7 @@ internal class KernelSettings
     /// <summary>
     /// Load the kernel settings from settings.json if the file exists and if not attempt to use user secrets.
     /// </summary>
-    internal static KernelSettings LoadSettings()
+    public static KernelSettings LoadSettings()
     {
         KernelSettings GetSettings(Func<IConfigurationBuilder, IConfigurationBuilder>? builder = null)
             => (builder ??= x => x)(new ConfigurationBuilder())
@@ -51,7 +54,6 @@ internal class KernelSettings
                     .SetBasePath(System.IO.Directory.GetCurrentDirectory())
                     .AddJsonFile(DefaultConfigFile, optional: true, reloadOnChange: true));
             }
-            //TODO: Ignore CA1303
             #pragma warning disable CA1303
             Console.WriteLine($"Semantic kernel settings '{DefaultConfigFile}' not found, attempting to load configuration from user secrets.");
 
