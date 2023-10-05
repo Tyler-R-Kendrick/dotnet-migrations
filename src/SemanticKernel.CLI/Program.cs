@@ -24,9 +24,10 @@ public static class Program
                 .AddDebug();
         });
         var logger = loggerFactory.CreateLogger<IKernel>();
-        var command = CommandFactory.BuildRootCommand(
+        var kernel = KernelFactory.BuildKernel(kernelSettings, logger);
+        var command = RootCommandFactory.BuildRootCommand(
             context => Console.WriteLine(context.Result),
-            kernelSettings, logger);
+            kernel);
         await command.InvokeAsync(args).ConfigureAwait(false);
     }
 }
