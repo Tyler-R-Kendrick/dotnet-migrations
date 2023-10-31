@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Configurations.CLI.Core;
 using System.CommandLine;
+using System.CommandLine.Hosting;
 
 [assembly:CLSCompliant(true)]
 #pragma warning disable CA1303 // Do not pass literals as localized parameters
@@ -19,10 +20,16 @@ builder.Configuration.AddInMemoryCollection(
 
 using IHost host = builder.Build();
 
-var rootCommand = new RootCommand("The application");
-IConfiguration configuration = host.Services.GetRequiredService<IConfiguration>();
-var command = new ConfigureCommandFactory(configuration).CreateCommand();
-rootCommand.AddCommand(command);
-await rootCommand.InvokeAsync(args).ConfigureAwait(false);
+var cliConfig = await BuildCommandLine(host)
+    .InvokeAsync(args)
+    .ConfigureAwait(false);
 
-await host.RunAsync().ConfigureAwait(false);
+
+static CliConfiguration BuildCommandLine(IHost host)
+{
+    var rootCommand = new CliRootCommand(@"$ dotnet run ");
+    IConfiguration configuration = host.Services.GetRequiredService<IConfiguration>();
+    var command = new ConfigureCommandFactory(configuration).CreateCommand();
+    rootCommand.AddCommand(command);
+    return new CliConfiguration(rootCommand);
+}

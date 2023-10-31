@@ -10,6 +10,8 @@
   <ItemGroup>
     <ProjectReference Include="../Configurations.CLI.Core/Configurations.CLI.Core.csproj" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="*" />
+    <PackageReference Include="System.CommandLine.Hosting" Version="0.*-alpha.*" />
+    <PackageReference Include="System.CommandLine" Version="2.*-beta4.*" />
   </ItemGroup>
 
 </Project>

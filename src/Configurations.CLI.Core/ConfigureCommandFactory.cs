@@ -17,31 +17,32 @@ public class ConfigureCommandFactory(IConfiguration configuration)
 
     private Command CreateGetCommand()
     {
-        var command = new Command("get", "Get the application configuration");
-        var keyOption = new Option<string>(new string[] { "--key", "-k" }, "The key to read");
-        keyOption.IsRequired = true;
-        command.AddOption(keyOption);
+        var keyArgument = new Argument<string>("--key", "The key to read");
+        var command = new Command("get", "Get the application configuration")
+        {
+            keyArgument
+        };
         command.SetHandler((string key) =>
         {
             var value = configuration.GetValue<string>(key);
             Console.Out.WriteLine(value);
-        }, keyOption);
+        }, keyArgument);
         return command;
     }
 
     private Command CreateSetCommand()
     {
-        var command = new Command("set", "Set the application configuration");
-        var keyOption = new Option<string>(new string[] { "--key", "-k" }, "The key to read");
-        keyOption.IsRequired = true;
-        var valueOption = new Option<string>(new string[] { "--value", "-v" }, "The value to read");
-        command.AddOption(keyOption);
-        command.AddOption(valueOption);
+        var keyArgument = new Argument<string>("--key", "The key to read");
+        var valueArgument = new Argument<string>("--value", "The value to read");
+        var command = new Command("set", "Set the application configuration")
+        {
+            keyArgument, valueArgument
+        };
         command.SetHandler((string key, string value) =>
         {
             configuration[key] = value;
             Console.Out.WriteLine($"Set {key} to {value}.");
-        }, keyOption, valueOption);
+        }, keyArgument, valueArgument);
         return command;
     }
 }
