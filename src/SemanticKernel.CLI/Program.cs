@@ -2,9 +2,6 @@
 using System.Runtime.InteropServices;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.AI.ChatCompletion;
-using Microsoft.SemanticKernel.Orchestration;
-using SKCLI;
 [assembly: ComVisible(false)]
 
 namespace SKCLI;

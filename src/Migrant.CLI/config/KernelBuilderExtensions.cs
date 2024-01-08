@@ -1,6 +1,4 @@
-﻿using Microsoft.SemanticKernel;
-
-internal static class KernelBuilderExtensions
+﻿internal static class KernelBuilderExtensions
 {
     /// <summary>
     /// Adds a text completion service to the list. It can be either an OpenAI or Azure OpenAI backend service.

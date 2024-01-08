@@ -1,8 +1,5 @@
-using System.CommandLine;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.AI.ChatCompletion;
-using Microsoft.SemanticKernel.Orchestration;
 namespace SKCLI;
 
 #pragma warning disable CA2007
