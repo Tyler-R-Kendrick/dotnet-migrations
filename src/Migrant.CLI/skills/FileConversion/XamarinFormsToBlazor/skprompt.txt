@@ -1,0 +1,16 @@
+Create a blazor file that accomplishes the same thing as the Xamarin.Forms file input.
+
+Xamarin Forms:
+```code
+
+```
+
+Blazor:
+```code
+
+```
+
+Xamarin Forms:
+```code
+{{$input}}
+```
