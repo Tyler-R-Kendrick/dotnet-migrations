@@ -5,16 +5,19 @@ using Microsoft.SemanticKernel.SkillDefinition;
 
 namespace SKCLI;
 
-static class PluginCommandFactory
+// Implement the interface in PluginCommandFactory
+internal class PluginCommandFactory(
+    IFunctionCommandFactory _functionCommandFactory)
+    : IPluginCommandFactory
 {
-    internal static DirectoryInfo GetPluginsDirectory()
+    public DirectoryInfo GetPluginsDirectory()
     {
         var currentDirectory = Directory.GetCurrentDirectory();
         var skillsDirectory = Path.Combine(currentDirectory, "skills");
         return new DirectoryInfo(skillsDirectory);
     }
     
-    internal static IEnumerable<KeyValuePair<string, ISKFunction>> GetDirectoryPlugins(
+    public IEnumerable<KeyValuePair<string, ISKFunction>> GetDirectoryPlugins(
         IKernel kernel,
         DirectoryInfo directoryInfo)
         => directoryInfo
@@ -24,11 +27,11 @@ static class PluginCommandFactory
                     directoryInfo.Name,
                     x.Name));
 
-    internal static IEnumerable<Command> CreateCommands(
+    public IEnumerable<Command> CreateCommands(
         IKernel kernel,
         DirectoryInfo directoryInfo,
         Action<SKContext> onExecute)
         => GetDirectoryPlugins(kernel, directoryInfo)
             .GroupBy(x => x.Value.SkillName)
-            .Select(grouping => FunctionCommandFactory.CreateCommands(onExecute, grouping));
+            .Select(grouping => _functionCommandFactory.Create(onExecute, grouping));
 }

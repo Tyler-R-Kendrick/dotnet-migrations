@@ -6,20 +6,6 @@ using SKCLI;
 
 namespace SemanticKernel.CLI.Tests;
 
-public abstract class TestBase<T>
-{
-    private Lazy<T> _testConcern;
-    protected T Concern => _testConcern.Value;
-
-    [SetUp]
-    public void Setup()
-    {
-        _testConcern = new Lazy<T>(Allocate);
-    }
-
-    protected abstract T Allocate();
-}
-
 public class ProgramUnitTests
 {
     [TestCase("--plugins")]

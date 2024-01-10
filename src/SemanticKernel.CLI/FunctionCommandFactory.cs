@@ -5,35 +5,34 @@ using Microsoft.SemanticKernel.SkillDefinition;
 
 namespace SKCLI;
 
-static class FunctionCommandFactory
+internal class FunctionCommandFactory(
+    ICommandFactory _commandFactory,
+    IOptionFactory _optionFactory)
+    : IFunctionCommandFactory
 {
-    private static Command CreateCommand(
-        ISKFunction function,
-        Action<SKContext> onExecute) 
-    {
-        var command = new Command($"{function.Name}", function.Description);
-        foreach (var option in OptionFactory.CreateOptions(function))
-        {
-            command.AddOption(option);
-        }
-        command.SetHandler(async () =>
-        {
-            var result = await function
-                .InvokeAsync()
-                .ConfigureAwait(false);
-            onExecute(result);
-        });
-        return command;
-    }
+    public Command Create(
+        ISKFunction skFunction,
+        Action<SKContext> onExecute)
+        => _commandFactory.Create(
+            skFunction.Name,
+            skFunction.Description,
+            async () =>
+            {
+                var result = await skFunction
+                    .InvokeAsync()
+                    .ConfigureAwait(false);
+                onExecute(result);
+            },
+            _optionFactory.CreateOptions(skFunction));
 
-    internal static Command CreateCommands(
+    public Command Create(
         Action<SKContext> onExecute,
         IGrouping<string, KeyValuePair<string, ISKFunction>> grouping)
     {
         var skillCommand = new Command(grouping.Key);
         foreach (var (key, function) in grouping)
         {
-            var subCommand = CreateCommand(function, onExecute);
+            var subCommand = Create(function, onExecute);
             skillCommand.AddCommand(subCommand);
         }
         return skillCommand;

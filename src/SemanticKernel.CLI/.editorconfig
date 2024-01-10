@@ -13,3 +13,5 @@ insert_final_newline = false
 
 [*.{cs}]
 dotnet_diagnostic.CA1859.severity = none
+dotnet_diagnostic.CS3001.severity = none
+dotnet_diagnostic.CS3002.severity = none

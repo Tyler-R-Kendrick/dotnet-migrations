@@ -5,9 +5,12 @@ using System.Diagnostics.Contracts;
 using Microsoft.SemanticKernel.SkillDefinition;
 
 namespace SKCLI;
-static class RootCommandFactory
+
+internal class RootCommandFactory(
+    IPluginCommandFactory _pluginCommandFactory)
+    : IRootCommandFactory
 {
-    internal static RootCommand BuildRootCommand(
+    public RootCommand BuildRootCommand(
         Action<SKContext> onExecute,
         IKernel kernel)
     {
@@ -22,7 +25,7 @@ static class RootCommandFactory
         return rootCommand;
     }
 
-    private static void BuildPluginCommand(IKernel kernel, RootCommand rootCommand)
+    public void BuildPluginCommand(IKernel kernel, RootCommand rootCommand)
     {
         var plugins = GetRegisteredPlugins(kernel);
         var pluginCommand = new Command("--plugin", "Select a plugin");
@@ -72,7 +75,7 @@ static class RootCommandFactory
         rootCommand.Add(pluginCommand);
     }
 
-    private static void BuildPluginsOption(IKernel kernel, RootCommand rootCommand)
+    public void BuildPluginsOption(IKernel kernel, RootCommand rootCommand)
     {
         var writer = Console.Out;
         string[] aliases = ["--plugins", "-P"];
@@ -91,7 +94,7 @@ static class RootCommandFactory
         }, option);
     }
 
-    private static IDictionary<string, IEnumerable<FunctionView>> GetFunctionViews(IKernel kernel)
+    public IDictionary<string, IEnumerable<FunctionView>> GetFunctionViews(IKernel kernel)
     {
         var skills = kernel.Skills.GetFunctionsView();
         var semantic = skills.SemanticFunctions;
@@ -100,24 +103,24 @@ static class RootCommandFactory
             .ToDictionary(x => x.Key, x => x.Value.AsEnumerable());
     }
 
-    private static IEnumerable<string> GetRegisteredFunctions(IKernel kernel)
+    public IEnumerable<string> GetRegisteredFunctions(IKernel kernel)
         => GetFunctionViews(kernel).SelectMany(x => x.Value.Select(y => y.Name));
 
-    private static IEnumerable<string> GetRegisteredFunctions(IKernel kernel, string plugin)
+    public IEnumerable<string> GetRegisteredFunctions(IKernel kernel, string plugin)
         => GetFunctionViews(kernel)[plugin].Select(x => x.Name);
 
-    private static IEnumerable<string> GetRegisteredPlugins(IKernel kernel)
+    public IEnumerable<string> GetRegisteredPlugins(IKernel kernel)
         => GetFunctionViews(kernel).Keys;
 
-    private static void BuildRootSubcommands(
+    public void BuildRootSubcommands(
         Action<SKContext> onExecute,
         IKernel kernel,
         RootCommand rootCommand,
         DirectoryInfo? directoryInfo = null)
     {
-        var skillDirInfo = directoryInfo ?? PluginCommandFactory.GetPluginsDirectory();
+        var skillDirInfo = directoryInfo ?? _pluginCommandFactory.GetPluginsDirectory();
         Contract.Assert(skillDirInfo.Exists);
-        var subCommands = PluginCommandFactory.CreateCommands(kernel, skillDirInfo, onExecute);
+        var subCommands = _pluginCommandFactory.CreateCommands(kernel, skillDirInfo, onExecute);
         foreach (var subCommand in subCommands)
         {
             rootCommand.Add(subCommand);
