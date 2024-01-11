@@ -16,6 +16,7 @@ internal class FunctionCommandBuilder(
             TreatUnmatchedTokensAsErrors = false
         };
         functionCommand.AddAlias("-f");
+        functionCommand.AddArgument(pluginArgument);
         var functionArgument = new Argument<string>("name");
         //todo: add argument validator.
         functionCommand.AddArgument(functionArgument);
