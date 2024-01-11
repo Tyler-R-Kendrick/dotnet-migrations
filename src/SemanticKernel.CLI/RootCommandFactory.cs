@@ -2,12 +2,13 @@ using System.CommandLine;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Orchestration;
 using System.Diagnostics.Contracts;
-using Microsoft.SemanticKernel.SkillDefinition;
 
 namespace SKCLI;
 
 internal class RootCommandFactory(
-    IPluginCommandFactory _pluginCommandFactory)
+    IPluginCommandFactory _pluginCommandFactory,
+    IPluginCommandBuilder _pluginCommandBuilder,
+    TextWriter _writer)
     : IRootCommandFactory
 {
     public RootCommand BuildRootCommand(
@@ -25,59 +26,14 @@ internal class RootCommandFactory(
         return rootCommand;
     }
 
-    public void BuildPluginCommand(IKernel kernel, RootCommand rootCommand)
+    private void BuildPluginCommand(IKernel kernel, RootCommand rootCommand)
     {
-        var plugins = GetRegisteredPlugins(kernel);
-        var pluginCommand = new Command("--plugin", "Select a plugin");
-        pluginCommand.AddAlias("-p");
-        var pluginArgument = new Argument<string>("name")
-            .FromAmong(plugins.ToArray());
-        pluginCommand.AddArgument(pluginArgument);
-
-        var functionsCommand = new Command("--functions", "list all functions for a plugin.");
-        pluginCommand.AddCommand(functionsCommand);
-
-        var functionCommand = new Command("--function", "The function to execute")
-        {
-            TreatUnmatchedTokensAsErrors = false
-        };
-        functionCommand.AddAlias("-f");
-        var functionArgument = new Argument<string>("name");
-        //todo: add argument validator.
-        functionCommand.AddArgument(functionArgument);
-        //todo: add handler for dynamic function args
-        functionCommand.SetHandler(async (plugin, function) =>
-        {
-            var skFunction = kernel.Func(plugin, function);
-            var view = skFunction.Describe();
-            var parameters = view.Parameters;
-            var contextVariables = new ContextVariables();
-            foreach(var parameter in parameters)
-            {
-                Console.WriteLine(parameter.Description);
-                Console.Write(parameter.Name + ": ");
-                var value = Console.ReadLine();
-                contextVariables[parameter.Name] = value ?? string.Empty;
-            }
-            var result = await skFunction.InvokeAsync(contextVariables).ConfigureAwait(false);
-            Console.WriteLine(result.Result);
-        }, pluginArgument, functionArgument);
-        pluginCommand.AddCommand(functionCommand);
-
-
-
-        //semker --plugins
-        //semker -p FunSkill -?
-        //semker -p FunSkill --functions
-        //semker -p FunSkill -f Joke -?
-        //semker -p FunSkill -f Joke
-        //semker -p FunSkill -f Joke --input "Some Text"
+        var pluginCommand = _pluginCommandBuilder.BuildPluginCommand(kernel);
         rootCommand.Add(pluginCommand);
     }
 
-    public void BuildPluginsOption(IKernel kernel, RootCommand rootCommand)
+    internal void BuildPluginsOption(IKernel kernel, RootCommand rootCommand)
     {
-        var writer = Console.Out;
         string[] aliases = ["--plugins", "-P"];
         var option = new Option<bool?>(aliases)
         {
@@ -86,33 +42,15 @@ internal class RootCommandFactory(
         rootCommand.AddOption(option);
         rootCommand.SetHandler(async (options) =>
         {
-            #pragma warning disable CS8602
-            foreach (var key in GetRegisteredPlugins(kernel))
+            foreach (var key in kernel.GetRegisteredPlugins())
             {
-                await writer.WriteLineAsync(key).ConfigureAwait(false);
+                await _writer.WriteLineAsync(key)
+                    .ConfigureAwait(false);
             }
         }, option);
     }
 
-    public IDictionary<string, IEnumerable<FunctionView>> GetFunctionViews(IKernel kernel)
-    {
-        var skills = kernel.Skills.GetFunctionsView();
-        var semantic = skills.SemanticFunctions;
-        var native = skills.NativeFunctions;
-        return semantic.Concat(native)
-            .ToDictionary(x => x.Key, x => x.Value.AsEnumerable());
-    }
-
-    public IEnumerable<string> GetRegisteredFunctions(IKernel kernel)
-        => GetFunctionViews(kernel).SelectMany(x => x.Value.Select(y => y.Name));
-
-    public IEnumerable<string> GetRegisteredFunctions(IKernel kernel, string plugin)
-        => GetFunctionViews(kernel)[plugin].Select(x => x.Name);
-
-    public IEnumerable<string> GetRegisteredPlugins(IKernel kernel)
-        => GetFunctionViews(kernel).Keys;
-
-    public void BuildRootSubcommands(
+    internal void BuildRootSubcommands(
         Action<SKContext> onExecute,
         IKernel kernel,
         RootCommand rootCommand,

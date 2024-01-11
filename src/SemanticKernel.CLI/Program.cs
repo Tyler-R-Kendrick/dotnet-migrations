@@ -1,7 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-[assembly: ComVisible(false)]
-[assembly: InternalsVisibleTo("SemanticKernel.CLI.Tests")]
+[assembly: InternalsVisibleTo("SemanticKernel.CLI.Tests"), InternalsVisibleTo("DynamicProxyGenAssembly2")]
 namespace SKCLI;
 
 /// <summary>
