@@ -24,7 +24,12 @@ internal sealed class FunctionCommandBuilderUnitTests : TestBase<FunctionCommand
     [Test]
     public async Task BuildFunctionCommandSucceeds()
     {
-        const string expectedResult = "test result";
+        const string
+            pluginName = "plugin",
+            functionName = "function",
+            commandInput = "command input",
+            testParam = "test_param",
+            expectedResult = "test result";
         // Arrange
         var argument = new Argument<string>("plugin");
         var mockKernel = new Mock<IKernel>();
@@ -34,7 +39,7 @@ internal sealed class FunctionCommandBuilderUnitTests : TestBase<FunctionCommand
         
         var fsView = new FunctionsView();
         var fView = new FunctionView("test_skill", "test_function", "test description",
-            new List<ParameterView> { new ("input", "the input value") }, false, false);
+            new List<ParameterView> { new ("input", commandInput), new (testParam, default) }, false, false);
         fsView.AddFunction(fView);
         mockSKFunction.Setup(x => x.Describe())
             .Returns(fView);
@@ -44,13 +49,13 @@ internal sealed class FunctionCommandBuilderUnitTests : TestBase<FunctionCommand
             .Returns(fsView);
         mockKernel.Setup(x => x.Logger).Returns(mockLogger.Object);
         mockKernel.Setup(x => x.Skills).Returns(mockSkillCollection.Object);
-        mockKernel.Setup(x => x.Func("plugin", "function"))
+        mockKernel.Setup(x => x.Func(pluginName, functionName))
             .Returns(mockSKFunction.Object);
 
         // Act
         var actualCommand = Concern.BuildFunctionCommand(
             mockKernel.Object, argument);
-        await actualCommand.InvokeAsync("plugin function input");
+        await actualCommand.InvokeAsync($"{pluginName} {functionName} {commandInput}");
 
         // Assert
         Assert.That(actualCommand, Is.InstanceOf<Command>());
@@ -63,8 +68,7 @@ internal sealed class FunctionCommandBuilderUnitTests : TestBase<FunctionCommand
 
         _mockTextWriter.Verify(x => x.WriteLineAsync(It.IsAny<string>()), Times.Exactly(2));
         _mockTextWriter.Verify(x => x.WriteLineAsync(expectedResult), Times.Exactly(1));
-        _mockTextWriter.Verify(x => x.WriteAsync(It.IsAny<string>()), Times.Exactly(1));
+        _mockTextWriter.Verify(x => x.WriteAsync($"{testParam}: "), Times.Exactly(1));
         _mockTextReader.Verify(x => x.ReadLineAsync(), Times.Exactly(1));
-
     }
 }

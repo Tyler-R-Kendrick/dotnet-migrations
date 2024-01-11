@@ -35,6 +35,7 @@ internal class FunctionCommandBuilder(
         }, pluginArgument, functionArgument);
         return functionCommand;
     }
+
     private static async Task<ContextVariables> BuildContextVariables(
         TextWriter _writer,
         TextReader _reader,
@@ -43,13 +44,27 @@ internal class FunctionCommandBuilder(
         var contextVariables = new ContextVariables();
         foreach (var parameter in parameters)
         {
-            await _writer.WriteLineAsync(parameter.Description)
-                .ConfigureAwait(false);
-            await _writer.WriteAsync(parameter.Name + ": ")
-                .ConfigureAwait(false);
-            var value = await _reader.ReadLineAsync().ConfigureAwait(false);
-            contextVariables[parameter.Name] = value ?? string.Empty;
+            if(contextVariables.ContainsKey(parameter.Name))
+                continue;
+            else contextVariables.TryAdd(parameter.Name,
+                await AssignInputVariable(_writer, _reader, parameter.Name, parameter.Description)
+                    .ConfigureAwait(false)
+                ?? parameter.DefaultValue ?? string.Empty);
         }
         return contextVariables;
+    }
+
+    private static async Task<string> AssignInputVariable(
+        TextWriter _writer,
+        TextReader _reader,
+        string name,
+        string? description)
+    {
+            await _writer.WriteLineAsync(description)
+                .ConfigureAwait(false);
+            await _writer.WriteAsync(name + ": ")
+                .ConfigureAwait(false);
+        var value = await _reader.ReadLineAsync().ConfigureAwait(false);
+        return value ?? string.Empty;
     }
 }
