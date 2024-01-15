@@ -9,6 +9,15 @@ namespace SKCLI;
 public interface IOptionFactory
 {
     /// <summary>
+    /// Creates an option with the specified aliases and arity.
+    /// </summary>
+    /// <typeparam name="T">The type of the option value.</typeparam>
+    /// <param name="aliases">The aliases for the option.</param>
+    /// <param name="arity">The arity of the option.</param>
+    /// <returns>The created option.</returns>
+    Option<T> CreateOption<T>(string[] aliases, ArgumentArity? arity = default);
+
+    /// <summary>
     /// Creates a collection of options based on the provided ISKFunction.
     /// </summary>
     /// <param name="skFunction">The ISKFunction to create options for.</param>

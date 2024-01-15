@@ -36,6 +36,7 @@ public interface IProgram
         var kernel = kernelFactory.BuildKernel(kernelSettings, logger);
         var commandFactory = new CommandFactory();
         var optionsFactory = new OptionFactory();
+        var argumentFactory = new ArgumentFactory();
         var @in = Console.In;
         var @out = Console.Out;
         var functionCommandFactory = new FunctionCommandFactory(
@@ -52,11 +53,15 @@ public interface IProgram
             functionCommandBuilder);
         var pluginCommandFactory = new PluginCommandFactory(
             functionCommandFactory);
-        var rootCommandFactory = new RootCommandFactory(
+        var rootCommandFactory = new RootCommandFactory();
+        var rootCommandBuilder = new RootCommandBuilder(
+            rootCommandFactory,
             pluginCommandFactory,
             pluginCommandBuiler,
+            optionsFactory,
+            argumentFactory,
             Console.Out);
-        var command = rootCommandFactory.BuildRootCommand(
+        var command = rootCommandBuilder.BuildRootCommand(
             context => Console.Out.WriteLine(context.Result),
             kernel);
         await command.InvokeAsync(args).ConfigureAwait(false);

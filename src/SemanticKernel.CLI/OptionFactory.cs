@@ -15,4 +15,7 @@ internal class OptionFactory : IOptionFactory
         => new Option<string?>($"--{parameterView.Name}",
             () => parameterView.DefaultValue,
             parameterView.Description);
+
+    public Option<T> CreateOption<T>(string[] aliases, ArgumentArity? arity = default)
+        => new(aliases) { Arity = arity ?? ArgumentArity.Zero };
 }

@@ -4,22 +4,27 @@ using Microsoft.SemanticKernel.Orchestration;
 using System.Diagnostics.Contracts;
 
 namespace SKCLI;
-
-internal class RootCommandFactory(
+internal class RootCommandBuilder(
+    IRootCommandFactory _rootCommandFactory,
     IPluginCommandFactory _pluginCommandFactory,
     IPluginCommandBuilder _pluginCommandBuilder,
+    IOptionFactory _optionFactory,
+    IArgumentFactory _argumentFactory,
     TextWriter _writer)
-    : IRootCommandFactory
+    : IRootCommandBuilder
 {
     public RootCommand BuildRootCommand(
         Action<SKContext> onExecute,
         IKernel kernel)
     {
-        var rootCommand = new RootCommand("Execute plugins with the semantic kernal.")
-        {
-            Name = "semker",
-            TreatUnmatchedTokensAsErrors = false
-        };
+        var inputArgument = _argumentFactory.Create<string>("input");
+        var rootCommand = _rootCommandFactory.Create(
+            "semker",
+            "Execute plugins with the semantic kernal.",
+            false,
+            arguments: [inputArgument],
+            options: [],
+            subcommands: []);
         BuildRootSubcommands(onExecute, kernel, rootCommand);
         BuildPluginsOption(kernel, rootCommand);
         BuildPluginCommand(kernel, rootCommand);
@@ -35,10 +40,11 @@ internal class RootCommandFactory(
     internal void BuildPluginsOption(IKernel kernel, RootCommand rootCommand)
     {
         string[] aliases = ["--plugins", "-P"];
-        var option = new Option<bool?>(aliases)
-        {
-            Arity = ArgumentArity.Zero
-        };
+        var option = _optionFactory.CreateOption<bool?>(aliases);
+#pragma warning disable CA2201 // Do not raise reserved exception types
+        if (option == null) throw new Exception("option is null");
+#pragma warning restore CA2201 // Do not raise reserved exception types
+        ArgumentNullException.ThrowIfNull(rootCommand);
         rootCommand.AddOption(option);
         rootCommand.SetHandler(async (options) =>
         {
