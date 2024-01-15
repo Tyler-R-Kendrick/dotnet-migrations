@@ -47,8 +47,8 @@ internal sealed class FunctionCommandBuilderUnitTests : TestBase<FunctionCommand
             .ReturnsAsync(new SKContext(new(expectedResult), mockSkillCollection.Object, mockLogger.Object));
         mockSkillCollection.Setup(x => x.GetFunctionsView(true, true))
             .Returns(fsView);
-        mockKernel.Setup(x => x.Logger).Returns(mockLogger.Object);
         mockKernel.Setup(x => x.Skills).Returns(mockSkillCollection.Object);
+        mockKernel.Setup(x => x.Logger).Returns(mockLogger.Object);
         mockKernel.Setup(x => x.Func(pluginName, functionName))
             .Returns(mockSKFunction.Object);
 

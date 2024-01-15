@@ -1,11 +1,11 @@
 using System.CommandLine;
 using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.SkillDefinition;
 
 namespace SKCLI;
 
 internal class FunctionsCommandFactory(
     TextWriter _writer)
+    : IFunctionsCommandFactory
 {
     public Command BuildFunctionsCommand(IKernel kernel, IEnumerable<string> plugins)
     {

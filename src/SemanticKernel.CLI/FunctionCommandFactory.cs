@@ -15,7 +15,6 @@ internal class FunctionCommandFactory(
         Action<SKContext> onExecute)
         => _commandFactory.Create(
             skFunction.Name,
-            skFunction.Description,
             async () =>
             {
                 var result = await skFunction
@@ -23,7 +22,8 @@ internal class FunctionCommandFactory(
                     .ConfigureAwait(false);
                 onExecute(result);
             },
-            _optionFactory.CreateOptions(skFunction));
+            description: skFunction.Description,
+            options: _optionFactory.CreateOptions(skFunction));
 
     public Command Create(
         Action<SKContext> onExecute,

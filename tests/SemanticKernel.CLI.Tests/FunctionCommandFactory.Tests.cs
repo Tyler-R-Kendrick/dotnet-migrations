@@ -34,9 +34,12 @@ public class FunctionCommandFactoryTests : TestBase<IFunctionCommandFactory>
         _mockCommandFactory.Setup(x => 
             x.Create(
                 mockFunction.Object.Name,
-                mockFunction.Object.Description,
                 It.IsAny<Func<Task>>(),
-                It.IsAny<IEnumerable<Option>>()))
+                It.IsAny<string[]>(),
+                mockFunction.Object.Description,
+                It.IsAny<IEnumerable<Option>>(),
+                It.IsAny<IEnumerable<Argument>>(),
+                It.IsAny<IEnumerable<Command>>()))
             .Returns(expectedCommand);
 
         // Act

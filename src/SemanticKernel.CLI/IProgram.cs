@@ -47,6 +47,7 @@ public interface IProgram
         var functionsCommandFactory = new FunctionsCommandFactory(
             @out);
         var pluginCommandBuiler = new PluginCommandBuilder(
+            commandFactory,
             functionsCommandFactory,
             functionCommandBuilder);
         var pluginCommandFactory = new PluginCommandFactory(
