@@ -6,19 +6,19 @@ using Microsoft.SemanticKernel.SkillDefinition;
 namespace SKCLI;
 
 internal class FunctionCommandBuilder(
+    IArgumentFactory _argumentFactory,
+    ICommandFactory _commandFactory,
     TextWriter _writer,
     TextReader _reader)
     : IFunctionCommandBuilder
 {
-    public Command BuildFunctionCommand(IKernel kernel, Argument<string> pluginArgument)
+    public Command BuildFunctionCommand(IKernel kernel,
+        Argument<string> pluginArgument)
     {
-        var functionCommand = new Command("--function", "The function to execute")
-        {
-            TreatUnmatchedTokensAsErrors = false
-        };
+        var functionCommand = _commandFactory.Create("--function", "The function to execute");
         functionCommand.AddAlias("-f");
         functionCommand.AddArgument(pluginArgument);
-        var functionArgument = new Argument<string>("name");
+        var functionArgument = _argumentFactory.Create<string>("name", "The name of the function to execute");
         //todo: add argument validator.
         functionCommand.AddArgument(functionArgument);
         //todo: add handler for dynamic function args

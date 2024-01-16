@@ -43,6 +43,8 @@ public interface IProgram
             commandFactory,
             optionsFactory);
         var functionCommandBuilder = new FunctionCommandBuilder(
+            argumentFactory,
+            commandFactory,
             @out,
             @in);
         var functionsCommandFactory = new FunctionsCommandFactory(

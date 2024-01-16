@@ -10,13 +10,20 @@ internal sealed class FunctionCommandBuilderUnitTests : TestBase<FunctionCommand
 {
     private Mock<TextWriter> _mockTextWriter = default!;
     private Mock<TextReader> _mockTextReader = default!;
+    private Mock<IArgumentFactory> _mockArgumentFactory = default!;
+    private Mock<ICommandFactory> _mockCommandFactory = default!;
+
     override protected FunctionCommandBuilder Allocate()
     => new FunctionCommandBuilder(
+        _mockArgumentFactory.Object,
+        _mockCommandFactory.Object,
         _mockTextWriter.Object,
         _mockTextReader.Object);
 
     override protected void SetupDependencies()
     {
+        _mockArgumentFactory = new Mock<IArgumentFactory>();
+        _mockCommandFactory = new Mock<ICommandFactory>();
         _mockTextWriter = new Mock<TextWriter>();
         _mockTextReader = new Mock<TextReader>();
     }
@@ -25,9 +32,9 @@ internal sealed class FunctionCommandBuilderUnitTests : TestBase<FunctionCommand
     public async Task BuildFunctionCommandSucceeds()
     {
         const string
-            pluginName = "plugin",
-            functionName = "function",
-            commandInput = "command input",
+            pluginName = "test_skill",
+            functionName = "test_function",
+            commandInput = @"""command input""",
             testParam = "test_param",
             expectedResult = "test result";
         // Arrange
@@ -38,9 +45,28 @@ internal sealed class FunctionCommandBuilderUnitTests : TestBase<FunctionCommand
         var mockSKFunction = new Mock<ISKFunction>();
         
         var fsView = new FunctionsView();
-        var fView = new FunctionView("test_skill", "test_function", "test description",
+        var fView = new FunctionView("test_skill", functionName, "test description",
             new List<ParameterView> { new ("input", commandInput), new (testParam, default) }, false, false);
         fsView.AddFunction(fView);
+        var nameArgument = new Argument<string>("name", "The name of the function to execute");
+        _mockArgumentFactory
+            .Setup(x => x.Create<string>(
+                "name",
+                "The name of the function to execute",
+                It.IsAny<string?>(),
+                It.IsAny<ArgumentArity?>(),
+                It.IsAny<bool>()))
+            .Returns(nameArgument);
+        var expectedCommand = new Command("--function", "The function to execute");
+        expectedCommand.AddAlias("-f");
+        expectedCommand.AddArgument(argument);
+        expectedCommand.AddArgument(nameArgument);
+        expectedCommand.TreatUnmatchedTokensAsErrors = false;
+        _mockCommandFactory
+            .Setup(x => x.Create(
+                "--function",
+                "The function to execute"))
+            .Returns(expectedCommand);
         mockSKFunction.Setup(x => x.Describe())
             .Returns(fView);
         mockSKFunction.Setup(x => x.InvokeAsync(It.IsAny<SKContext>(), null, default))
@@ -55,17 +81,17 @@ internal sealed class FunctionCommandBuilderUnitTests : TestBase<FunctionCommand
         // Act
         var actualCommand = Concern.BuildFunctionCommand(
             mockKernel.Object, argument);
-        await actualCommand.InvokeAsync($"{pluginName} {functionName} {commandInput}");
+        await actualCommand.InvokeAsync($"{pluginName} {functionName}");
 
         // Assert
         Assert.That(actualCommand, Is.InstanceOf<Command>());
         Assert.That(actualCommand.Name, Is.EqualTo("--function"));
         Assert.That(actualCommand.Description, Is.EqualTo("The function to execute"));
-        Assert.That(actualCommand.TreatUnmatchedTokensAsErrors, Is.False);
         Assert.That(actualCommand.Aliases, Is.EquivalentTo(new[] { "--function", "-f" }));
         Assert.That(actualCommand.Arguments, Contains.Item(argument));
         Assert.That(actualCommand.Handler, Is.Not.Null);
 
+        mockKernel.Verify(x => x.Func(pluginName, functionName), Times.Exactly(1));
         _mockTextWriter.Verify(x => x.WriteLineAsync(It.IsAny<string>()), Times.Exactly(2));
         _mockTextWriter.Verify(x => x.WriteLineAsync(expectedResult), Times.Exactly(1));
         _mockTextWriter.Verify(x => x.WriteAsync($"{testParam}: "), Times.Exactly(1));

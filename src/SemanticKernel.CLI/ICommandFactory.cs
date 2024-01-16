@@ -7,6 +7,8 @@ namespace SKCLI;
 /// </summary>
 internal interface ICommandFactory
 {
+    Command Create(string name, string description) => new Command(name, description);
+
     /// <summary>
     /// Creates a command with the specified name, description, handler, and options.
     /// </summary>
@@ -31,7 +33,7 @@ internal interface ICommandFactory
         options ??= Array.Empty<Option>();
         arguments ??= Array.Empty<Argument>();
         commands ??= Array.Empty<Command>();
-        var command = new Command(name, description);
+        var command = Create(name, description);
         foreach (var alias in aliases)
         {
             command.AddAlias(alias);
