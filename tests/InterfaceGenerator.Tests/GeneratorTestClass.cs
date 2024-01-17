@@ -36,3 +36,16 @@ public partial class GeneratorTestClass(int initialValue)
         _testField = value;
     }
 }
+
+
+[InterfaceGenerator(Scope.Public)]
+public partial class GeneratorTestClass2 : IGeneratorTestClass2
+{
+    public int MyProp { get; set; }
+}
+
+// [InterfaceGenerator(Scope.Public)]
+// public class GeneratorTestClass3
+// {
+//     public int MyProp { get; set; }
+// }

@@ -31,26 +31,29 @@ public static class SourceGenerationHelper
 
     private static string GenerateClassString(ClassDeclarationSyntax syntax)
     {
+        var className = syntax.Identifier.Text;
+        var interfaceName = $"I{className}";
         var modifiers = syntax.Modifiers;
         var baseList = syntax.BaseList;
         var classModifiers = modifiers.Select(static m => m.ToString());
         var hasPartial = classModifiers.Any(static m => m == "partial");
-        if(!hasPartial) return string.Empty;
-        else if(baseList is not null)
+        string BuildInheritanceString()
         {
-            var className = syntax.Identifier.Text;
-            var interfaceName = $"I{className}";
-            var hasBaseInterface = baseList.Types.Any(t => t.ToString() == interfaceName);
-            if(!hasBaseInterface)
+            var classModifierString = string.Join(" ", classModifiers);
+            var declarationString = $"{classModifierString} class {className}";
+            declarationString += $" : {interfaceName}";
+            declarationString += @"
             {
-                var classModifierString = string.Join(" ", classModifiers);
-                var declarationString = $"{classModifierString} class {className}";
-                declarationString += $" : {interfaceName}";
-                return declarationString;
-            }
-            else return string.Empty;
+            }";
+            return declarationString;
         }
-        else return string.Empty;
+        var implementsGeneratedInterface = baseList is not null
+            && baseList.Types.Any(t => t.ToString() == interfaceName);
+        return implementsGeneratedInterface
+            ? string.Empty
+            : hasPartial
+                ? BuildInheritanceString()
+                : throw new InvalidOperationException($"Class `{className}` must be partial");
     }
 
     private static string GenerateInterfaceString(ClassDeclarationSyntax syntax)
@@ -152,20 +155,6 @@ public static class SourceGenerationHelper
         var declarationString = $"{returnType} {propertyName} {{ {accessorString } }}";
         declarationString += @"
                 ";
-                
         return declarationString;
-        //return string.Empty;
-        // var returnType = member.Type?.ToFullString().Trim() ?? "object";
-        // var propertyName = member.Identifier.Text;
-        // var accessors = member.AccessorList?.Accessors
-        //     .Where(x => x is not null)
-        //     .Where(x => !x.Modifiers.Any(static m => m.ToString() == "static"))
-        //     .Where(x => x.Modifiers.Any(static m => m.ToString() == "public") || x.Modifiers.Count == 0)
-        //     .Select(x => $"{x.Keyword};");
-        // var accessorString = !accessors?.Any() ?? false ? "get;" : string.Join(" ", accessors);
-        // var declarationString = $"{returnType} {propertyName} {{ {accessorString } }}";
-        // declarationString += @"
-        //         ";
-        // return declarationString;
     }
 }
