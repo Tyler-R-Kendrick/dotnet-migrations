@@ -1,9 +1,11 @@
 using System.CommandLine;
 using Microsoft.SemanticKernel;
+using InterfaceGenerator;
 
 namespace SKCLI;
 
-internal class PluginCommandBuilder(
+[InterfaceGenerator]
+internal partial class PluginCommandBuilder(
     ICommandFactory _commandFactory,
     IFunctionsCommandFactory _functionsCommandFactory,
     IFunctionCommandBuilder _functionCommandFactory)

@@ -1,10 +1,12 @@
+using InterfaceGenerator;
 using System.CommandLine;
 
 namespace SKCLI;
 
-internal interface IArgumentFactory
+[InterfaceGenerator]
+internal sealed partial class ArgumentFactory
 {
-    Argument<T> Create<T>(string name,
+    public Argument<T> Create<T>(string name,
         string? description = default,
         T? defaultValue = default,
         ArgumentArity? arity = default,
@@ -19,8 +21,4 @@ internal interface IArgumentFactory
         argument.SetDefaultValue(defaultValue);
         return argument;
     }
-}
-
-internal class ArgumentFactory : IArgumentFactory
-{
 }

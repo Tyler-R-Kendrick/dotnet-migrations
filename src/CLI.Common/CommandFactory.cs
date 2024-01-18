@@ -1,13 +1,12 @@
 using System.CommandLine;
+using InterfaceGenerator;
 
 namespace SKCLI;
 
-/// <summary>
-/// Represents a factory for creating commands.
-/// </summary>
-internal interface ICommandFactory
+[InterfaceGenerator]
+internal sealed partial class CommandFactory
 {
-    Command Create(string name, string description) => new Command(name, description);
+    public Command Create(string name, string description) => new Command(name, description);
 
     /// <summary>
     /// Creates a command with the specified name, description, handler, and options.
@@ -20,7 +19,7 @@ internal interface ICommandFactory
     /// <param name="arguments"></param>
     /// <param name="commands"></param>
     /// <returns>The created command.</returns>
-    Command Create(string name,
+    public Command Create(string name,
         Func<Task> handler,
         string[]? aliases = default,
         string? description = default,

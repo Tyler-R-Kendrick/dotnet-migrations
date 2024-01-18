@@ -1,21 +1,39 @@
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Text;
 
 namespace InterfaceGenerator;
 
+//TODO: Add support for interface inheritance.
+//TODO: Add support for interface name override.
+//TODO: Add support for generic interfaces.
+//TODO: Add support for explicit implementations for non-public interfaces.
+//TODO: Implement using scraping from the original class.
+//TODO: Copy summary documentation from the original class.
 public static class SourceGenerationHelper
 {
     static InterfaceToGenerate GetInterfaceToGenerate(ClassDeclarationSyntax declarationSyntax)
     {
-        string className = declarationSyntax.Identifier.Text;
+        var className = declarationSyntax.Identifier.Text;
         var classMembers = declarationSyntax.Members;
+        var interfaceGeneratorAttribute = declarationSyntax.AttributeLists
+            .SelectMany(static a => a.Attributes)
+            .FirstOrDefault(static a => a.Name.ToString() == "InterfaceGenerator");
+        var interfaceScope = interfaceGeneratorAttribute?.ArgumentList?.Arguments
+            .FirstOrDefault(static a => a.NameEquals?.Name.ToString() == "Scope");
         return new InterfaceToGenerate(className, classMembers);
     }
 
     public static string GenerateExtensionClass(ClassDeclarationSyntax syntax)
     {
         var sb = new StringBuilder();
+
+        //needed for a nullable context.
+        sb.AppendLine("#nullable enable");
+
+        var @usings = GenerateUsingString(syntax);
+        sb.AppendLine(@usings);
 
         var @namespace = GenerateNamespaceString(syntax);
         sb.AppendLine(@namespace);
@@ -53,13 +71,21 @@ public static class SourceGenerationHelper
             ? string.Empty
             : hasPartial
                 ? BuildInheritanceString()
-                : throw new InvalidOperationException($"Class `{className}` must be partial");
+                : throw new InvalidOperationException(
+                    $"Class `{className}` must be partial or must implement `{interfaceName}`.");
     }
 
     private static string GenerateInterfaceString(ClassDeclarationSyntax syntax)
     {
-        var classDeclarationModifiers = syntax.Modifiers.Select(static m => m.ToString());
-        var classDeclarationModifiersString = string.Join(" ", classDeclarationModifiers);
+        //TODO: Add support for "private" with default implementations. Perhaps through abstract partial members?
+        //TODO: Add support for "static" members with default implementations.
+        //TODO: Add support for "static abstract" members.
+        string[] validModifiers = ["public", "internal", "protected", "partial"];
+        var classDeclarationModifiers = syntax.Modifiers
+            .Select(static m => m.ToString())
+            .Intersect(validModifiers);
+        var modifiersString = string.Join(" ", classDeclarationModifiers);
+        modifiersString = "public partial";
 
         var toGenerate = GetInterfaceToGenerate(syntax);
         var values = toGenerate.Values
@@ -76,12 +102,23 @@ public static class SourceGenerationHelper
         var valuesString = string.Join(@"
                 ", values);
         var interfaceName = $"I{toGenerate.Name}";
-        var declarationString = $"{classDeclarationModifiersString} interface {interfaceName}";
+        var declarationString = $"{modifiersString} interface {interfaceName}";
         declarationString += @"
         {
             " + valuesString + @"
         }";
         return declarationString;
+    }
+
+    private static string GenerateUsingString(ClassDeclarationSyntax syntax)
+    {
+        var usings = syntax.SyntaxTree
+            .GetRoot()
+            .DescendantNodes()
+            .OfType<UsingDirectiveSyntax>();
+        var usingString = string.Join(@"
+            ", usings.Select(static u => $"{u.ToFullString().Trim()}"));
+        return usingString;
     }
 
     private static string GenerateNamespaceString(ClassDeclarationSyntax syntax)
@@ -97,9 +134,21 @@ public static class SourceGenerationHelper
     {
         var returnType = member.ReturnType.ToFullString().Trim();
         var methodName = member.Identifier.Text;
-        var parameters = member.ParameterList?.Parameters.Select(static p => p.ToFullString());
+        //TODO: Add support for generic methods.
+        //TODO: Add support for constraints
+        //TODO: Copy attributes from the original method.
+        //TODO: Add support for optional parameters.
+        //TODO: Add support for modifiers on parameters.
+        var genericParameters = member.TypeParameterList?.Parameters
+            .Select(static p => p.Identifier.Text);
+        var genericParameterString = string.Empty;
+        if(genericParameters != null && genericParameters.Any())
+        {
+            genericParameterString = $"<{string.Join(", ", genericParameters)}>";
+        }
+        var parameters = member.ParameterList?.Parameters.Select(static p => p.ToFullString().Trim());
         var parameterString = parameters.Any() ? string.Join(", ", parameters) : "";
-        var declarationString = $"{returnType} {methodName}({parameterString});";
+        var declarationString = $"{returnType} {methodName}{genericParameterString}({parameterString});";
         declarationString += @"
                 ";
         return declarationString;

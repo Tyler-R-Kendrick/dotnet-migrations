@@ -2,16 +2,18 @@ using System.CommandLine;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Orchestration;
 using System.Diagnostics.Contracts;
+using InterfaceGenerator;
 
 namespace SKCLI;
-internal class RootCommandBuilder(
+
+[InterfaceGenerator]
+internal partial class RootCommandBuilder(
     IRootCommandFactory _rootCommandFactory,
     IPluginCommandFactory _pluginCommandFactory,
     IPluginCommandBuilder _pluginCommandBuilder,
     IOptionFactory _optionFactory,
     IArgumentFactory _argumentFactory,
     TextWriter _writer)
-    : IRootCommandBuilder
 {
     public RootCommand BuildRootCommand(
         Action<SKContext> onExecute,

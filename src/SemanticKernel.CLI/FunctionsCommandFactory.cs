@@ -1,9 +1,11 @@
 using System.CommandLine;
 using Microsoft.SemanticKernel;
+using InterfaceGenerator;
 
 namespace SKCLI;
 
-internal class FunctionsCommandFactory(
+[InterfaceGenerator]
+internal partial class FunctionsCommandFactory(
     TextWriter _writer)
     : IFunctionsCommandFactory
 {

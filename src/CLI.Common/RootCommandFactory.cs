@@ -1,10 +1,12 @@
 using System.CommandLine;
+using InterfaceGenerator;
 
 namespace SKCLI;
 
-internal interface IRootCommandFactory
+[InterfaceGenerator]
+internal sealed partial class RootCommandFactory
 {
-    RootCommand Create(string name,
+    public RootCommand Create(string name,
         string? description = default,
         bool treatUnmatchedTokensAsErrors = false,
         Argument[]? arguments = default,
@@ -34,8 +36,4 @@ internal interface IRootCommandFactory
         }
         return command;
     }
-}
-
-internal class RootCommandFactory : IRootCommandFactory
-{
 }

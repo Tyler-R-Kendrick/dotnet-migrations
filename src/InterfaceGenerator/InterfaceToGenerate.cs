@@ -3,14 +3,10 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace InterfaceGenerator;
 
-public struct InterfaceToGenerate
+public readonly struct InterfaceToGenerate(string name, 
+    SyntaxList<MemberDeclarationSyntax> values)
 {
-    public string Name { get; }
-    public SyntaxList<MemberDeclarationSyntax> Values { get; }
-
-    public InterfaceToGenerate(string name, SyntaxList<MemberDeclarationSyntax> values)
-    {
-        Name = name;
-        Values = values;
-    }
+    public string Name { get; } = name;
+    public Scope Scope { get; } = Scope.Public;
+    public SyntaxList<MemberDeclarationSyntax> Values { get; } = values;
 }

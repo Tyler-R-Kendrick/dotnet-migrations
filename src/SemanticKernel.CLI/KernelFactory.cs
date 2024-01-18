@@ -1,8 +1,11 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
+using InterfaceGenerator;
+
 namespace SKCLI;
 
-internal class KernelFactory : IKernelFactory
+[InterfaceGenerator]
+internal partial class KernelFactory
 {
     public IKernel BuildKernel(KernelSettings settings, ILogger logger)
     => new KernelBuilder()

@@ -2,10 +2,12 @@ using System.CommandLine;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Orchestration;
 using Microsoft.SemanticKernel.SkillDefinition;
+using InterfaceGenerator;
 
 namespace SKCLI;
 
-internal class FunctionCommandFactory(
+[InterfaceGenerator]
+internal partial class FunctionCommandFactory(
     ICommandFactory _commandFactory,
     IOptionFactory _optionFactory)
     : IFunctionCommandFactory

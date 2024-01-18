@@ -2,11 +2,12 @@ using System.CommandLine;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Orchestration;
 using Microsoft.SemanticKernel.SkillDefinition;
+using InterfaceGenerator;
 
 namespace SKCLI;
 
-// Implement the interface in PluginCommandFactory
-internal class PluginCommandFactory(
+[InterfaceGenerator]
+internal partial class PluginCommandFactory(
     IFunctionCommandFactory _functionCommandFactory)
     : IPluginCommandFactory
 {

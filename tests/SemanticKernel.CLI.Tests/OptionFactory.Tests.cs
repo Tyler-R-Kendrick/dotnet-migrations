@@ -5,13 +5,17 @@ using System.Collections.Generic;
 using System.CommandLine;
 using Microsoft.SemanticKernel.SkillDefinition;
 using SKCLI;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace SemanticKernel.CLI.Tests;
 
 public class OptionFactoryTests : TestBase<IOptionFactory>
 {
     override protected IOptionFactory Allocate()
-        => new OptionFactory();
+    => new ServiceCollection()
+        .AddCLI()
+        .BuildServiceProvider()
+        .GetRequiredService<IOptionFactory>();
 
     [Test]
     public void TestCreateOptions()
@@ -37,7 +41,7 @@ public class OptionFactoryTests : TestBase<IOptionFactory>
 
         // Assert
         var option = options.First();
-        Assert.That(option.Aliases.First(), Is.EqualTo("--test"));
+        Assert.That(option.Aliases.First(), Is.EqualTo("test"));
         Assert.That(option.Description, Is.EqualTo("description"));
     }
 
@@ -53,10 +57,12 @@ public class OptionFactoryTests : TestBase<IOptionFactory>
         };
 
         // Act
-        var option = Concern.CreateOption(parameterView);
-
-        // Assert
-        Assert.That(option.Aliases.First(), Is.EqualTo("--test"));
-        Assert.That(option.Description, Is.EqualTo("description"));
+        var option = Concern.CreateOption<string>(parameterView);
+        Assert.Multiple(() =>
+        {
+            // Assert
+            Assert.That(option.Aliases.First(), Is.EqualTo("test"));
+            Assert.That(option.Description, Is.EqualTo("description"));
+        });
     }
 }
