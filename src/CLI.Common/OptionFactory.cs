@@ -18,7 +18,7 @@ internal sealed partial class OptionFactory
 
     public Option<T> CreateOption<T>(string name, string? description = default, ArgumentArity? arity = default)
     {
-        var option = CreateOption<T>(new[] { name }, arity);
+        var option = CreateOption<T>([name], arity);
         option.Description = description;
         return option;
     }

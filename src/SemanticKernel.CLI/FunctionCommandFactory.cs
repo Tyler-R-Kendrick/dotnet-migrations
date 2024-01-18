@@ -31,7 +31,7 @@ internal partial class FunctionCommandFactory(
         Action<SKContext> onExecute,
         IGrouping<string, KeyValuePair<string, ISKFunction>> grouping)
     {
-        var skillCommand = new Command(grouping.Key);
+        var skillCommand = _commandFactory.Create(grouping.Key);
         foreach (var (key, function) in grouping)
         {
             var subCommand = Create(function, onExecute);

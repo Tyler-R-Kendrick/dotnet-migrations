@@ -37,9 +37,8 @@ public partial class GeneratorTestClass(int initialValue)
     }
 }
 
-
 [InterfaceGenerator(Scope.Public)]
-public partial class GeneratorTestClass2 : IGeneratorTestClass2
+public class GeneratorTestClass2 : IGeneratorTestClass2
 {
     public int MyProp { get; set; }
 }

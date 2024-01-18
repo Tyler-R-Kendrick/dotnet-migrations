@@ -13,6 +13,21 @@ namespace InterfaceGenerator;
 //TODO: Copy summary documentation from the original class.
 public static class SourceGenerationHelper
 {
+    private const string
+        NewLine = "\r\n",
+        Indent = "\t",
+        Space = " ",
+        Empty = "";
+
+    static string JoinNewLine(IEnumerable<string?> values)
+        => string.Join(NewLine, values.Where(x => x is not null));
+    static string JoinList(IEnumerable<string?>? values)
+        => string.Join(", ", values.Where(x => x is not null));
+    static string JoinSpace(IEnumerable<string?>? values)
+        => string.Join(Space, values.Where(x => x is not null));
+    static bool Any(IEnumerable<string?>? values)
+        => values is not null && values.Any(x => x is not null);
+
     static InterfaceToGenerate GetInterfaceToGenerate(ClassDeclarationSyntax declarationSyntax)
     {
         var className = declarationSyntax.Identifier.Text;
@@ -20,75 +35,112 @@ public static class SourceGenerationHelper
         var interfaceGeneratorAttribute = declarationSyntax.AttributeLists
             .SelectMany(static a => a.Attributes)
             .FirstOrDefault(static a => a.Name.ToString() == "InterfaceGenerator");
-        var interfaceScope = interfaceGeneratorAttribute?.ArgumentList?.Arguments
-            .FirstOrDefault(static a => a.NameEquals?.Name.ToString() == "Scope");
-        return new InterfaceToGenerate(className, classMembers);
+
+        //TODO: Get this working
+        var interfaceNameSyntax = interfaceGeneratorAttribute?.ArgumentList?.Arguments
+            .FirstOrDefault(static a => a.NameEquals?.Name.ToString() == "Name"
+                || a.NameColon?.Name.ToString() == "name"
+                || a.IsKind(SyntaxKind.StringLiteralExpression));
+        var interfaceName = interfaceNameSyntax is null
+            ? $"I{className}"
+            : interfaceNameSyntax.Expression switch
+            {
+                LiteralExpressionSyntax l => l.Token.ValueText,
+                _ => throw new InvalidOperationException(
+                    $"Invalid name `{interfaceNameSyntax.Expression}`. Valid names are strings.")
+            };
+
+        //TODO: Get this working
+        var interfaceScopeSyntax = interfaceGeneratorAttribute?.ArgumentList?.Arguments
+            .FirstOrDefault(static a => a.NameEquals?.Name.ToString() == "Scope"
+                || a.NameColon?.Name.ToString() == "scope"
+                || a.IsKind(SyntaxKind.IdentifierName));
+        var interfaceScope = interfaceScopeSyntax is null
+            ? Scope.Public
+            : interfaceScopeSyntax.Expression switch
+            {
+                MemberAccessExpressionSyntax m => m.Name.ToString() switch
+                {
+                    "Public" => Scope.Public,
+                    "Internal" => Scope.Internal,
+                    _ => throw new InvalidOperationException(
+                        $"Invalid scope `{m.Name}`. Valid scopes are `Public`, `Internal`, `Protected`, and `Private`.")
+                },
+                _ => throw new InvalidOperationException(
+                    $"Invalid scope `{interfaceScopeSyntax.Expression}`. Valid scopes are `Public`, `Internal`, `Protected`, and `Private`.")
+            };
+        return new InterfaceToGenerate(interfaceName, classMembers, interfaceScope);
     }
 
     public static string GenerateExtensionClass(ClassDeclarationSyntax syntax)
     {
+        var interfaceToGenerate = GetInterfaceToGenerate(syntax);
         var sb = new StringBuilder();
 
         //needed for a nullable context.
         sb.AppendLine("#nullable enable");
+        sb.AppendLine();
 
         var @usings = GenerateUsingString(syntax);
         sb.AppendLine(@usings);
+        sb.AppendLine();
 
         var @namespace = GenerateNamespaceString(syntax);
         sb.AppendLine(@namespace);
+        sb.AppendLine();
 
-        var interfaceString = GenerateInterfaceString(syntax);
+        var interfaceString = GenerateInterfaceString(interfaceToGenerate);
         sb.AppendLine(interfaceString);
-        
-        var classString = GenerateClassString(syntax);
-        sb.AppendLine(classString);
+        sb.AppendLine();
 
+        var classString = GenerateClassString(syntax, interfaceToGenerate);
+        sb.AppendLine(classString);
+        sb.AppendLine();
+
+        sb.AppendLine("#nullable restore");
+        sb.AppendLine();
         return sb.ToString();
     }
 
-    private static string GenerateClassString(ClassDeclarationSyntax syntax)
+    private static string GenerateClassString(
+        ClassDeclarationSyntax syntax,
+        InterfaceToGenerate interfaceToGenerate)
     {
         var className = syntax.Identifier.Text;
-        var interfaceName = $"I{className}";
+        var interfaceName = interfaceToGenerate.Name;
         var modifiers = syntax.Modifiers;
         var baseList = syntax.BaseList;
         var classModifiers = modifiers.Select(static m => m.ToString());
         var hasPartial = classModifiers.Any(static m => m == "partial");
         string BuildInheritanceString()
         {
-            var classModifierString = string.Join(" ", classModifiers);
-            var declarationString = $"{classModifierString} class {className}";
-            declarationString += $" : {interfaceName}";
-            declarationString += @"
-            {
-            }";
-            return declarationString;
+            var classModifierString = Any(classModifiers)
+                ? JoinSpace(classModifiers) + Space
+                : Empty;
+            return $"{classModifierString}class {className} : {interfaceName} {{}}";
         }
         var implementsGeneratedInterface = baseList is not null
-            && baseList.Types.Any(t => t.ToString() == interfaceName);
+            && baseList.Types.Any(t => t.ToTrimmedString() == interfaceName);
         return implementsGeneratedInterface
-            ? string.Empty
+            ? Empty
             : hasPartial
                 ? BuildInheritanceString()
                 : throw new InvalidOperationException(
                     $"Class `{className}` must be partial or must implement `{interfaceName}`.");
     }
 
-    private static string GenerateInterfaceString(ClassDeclarationSyntax syntax)
+    private static string GenerateInterfaceString(InterfaceToGenerate interfaceToGenerate)
     {
         //TODO: Add support for "private" with default implementations. Perhaps through abstract partial members?
         //TODO: Add support for "static" members with default implementations.
         //TODO: Add support for "static abstract" members.
         string[] validModifiers = ["public", "internal", "protected", "partial"];
-        var classDeclarationModifiers = syntax.Modifiers
-            .Select(static m => m.ToString())
-            .Intersect(validModifiers);
-        var modifiersString = string.Join(" ", classDeclarationModifiers);
-        modifiersString = "public partial";
-
-        var toGenerate = GetInterfaceToGenerate(syntax);
-        var values = toGenerate.Values
+        // var classDeclarationModifiers = syntax.Modifiers
+        //     .Select(static m => m.ToString())
+        //     .Intersect(validModifiers);
+        // var modifiersString = string.Join(" ", classDeclarationModifiers);
+        var modifiersString = "public partial";
+        var values = interfaceToGenerate.Values
             .Where(static m => m.Modifiers.Any(static m => m.ToString() == "public"))
             .Select(x => x switch
             {
@@ -97,17 +149,27 @@ public static class SourceGenerationHelper
                 EventDeclarationSyntax e => GenerateEventDeclarationString(e),
                 IndexerDeclarationSyntax i => GenerateIndexerDeclarationString(i),
                 MethodDeclarationSyntax m => GenerateMethodDeclarationString(m),
-                _ => ""
-            });
-        var valuesString = string.Join(@"
-                ", values);
-        var interfaceName = $"I{toGenerate.Name}";
+                _ => Empty
+            })
+            .Select(static v => $"{Indent}{v}");
+        var valuesString = JoinNewLine(values);
+        var interfaceName = interfaceToGenerate.Name;
         var declarationString = $"{modifiersString} interface {interfaceName}";
-        declarationString += @"
-        {
-            " + valuesString + @"
-        }";
-        return declarationString;
+        return $"{declarationString}{NewLine}{{{NewLine}{valuesString}{NewLine}}}";
+    }
+
+    private static string GenerateXmlDocString(CSharpSyntaxNode syntax)
+    {
+        var trivias = syntax.GetLeadingTrivia();
+        var xmlCommentTrivia = trivias
+            .Where(t => t.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia)
+                || t.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia))
+            .Select(t => t.GetStructure())
+            .Select(t => t?.ToTrimmedString())
+            .Where(t => t is not null);
+        return xmlCommentTrivia.Any()
+            ? JoinNewLine(xmlCommentTrivia) + NewLine
+            : Empty;
     }
 
     private static string GenerateUsingString(ClassDeclarationSyntax syntax)
@@ -115,24 +177,25 @@ public static class SourceGenerationHelper
         var usings = syntax.SyntaxTree
             .GetRoot()
             .DescendantNodes()
-            .OfType<UsingDirectiveSyntax>();
-        var usingString = string.Join(@"
-            ", usings.Select(static u => $"{u.ToFullString().Trim()}"));
-        return usingString;
+            .OfType<UsingDirectiveSyntax>()
+            .Select(static u => $"{u.ToTrimmedString()}");
+        return JoinNewLine(usings);
     }
 
     private static string GenerateNamespaceString(ClassDeclarationSyntax syntax)
     {
         var success = SyntaxNodeHelper.TryGetParentSyntax<NamespaceDeclarationSyntax>(syntax, out var ns);
         success |= SyntaxNodeHelper.TryGetParentSyntax<FileScopedNamespaceDeclarationSyntax>(syntax, out var fns);
-        var @namespace = ns?.Name.ToString() ?? fns?.Name.ToString() ?? "UnknownNamespace";
-        var declarationString = $"namespace {@namespace};";
-        return declarationString;
+        if(!success)
+            throw new InvalidOperationException(
+                $"Class `{syntax.Identifier.Text}` must be declared in a namespace.");
+        var @namespace = ns?.Name.ToString() ?? fns?.Name.ToString() ?? "GeneratedNamespace";
+        return $"namespace {@namespace};";
     }
 
     private static string GenerateMethodDeclarationString(MethodDeclarationSyntax member)
     {
-        var returnType = member.ReturnType.ToFullString().Trim();
+        var returnType = member.ReturnType.ToTrimmedString();
         var methodName = member.Identifier.Text;
         //TODO: Add support for generic methods.
         //TODO: Add support for constraints
@@ -141,69 +204,63 @@ public static class SourceGenerationHelper
         //TODO: Add support for modifiers on parameters.
         var genericParameters = member.TypeParameterList?.Parameters
             .Select(static p => p.Identifier.Text);
-        var genericParameterString = string.Empty;
-        if(genericParameters != null && genericParameters.Any())
-        {
-            genericParameterString = $"<{string.Join(", ", genericParameters)}>";
-        }
-        var parameters = member.ParameterList?.Parameters.Select(static p => p.ToFullString().Trim());
-        var parameterString = parameters.Any() ? string.Join(", ", parameters) : "";
-        var declarationString = $"{returnType} {methodName}{genericParameterString}({parameterString});";
-        declarationString += @"
-                ";
-        return declarationString;
+        var genericParameterString = Any(genericParameters)
+            ? $"<{JoinList(genericParameters)}>"
+            : Empty;
+        var parameters = member.ParameterList?.Parameters.Select(static p => p.ToTrimmedString());
+        var parameterString = Any(parameters) ? JoinList(parameters) : Empty;
+        return $"{returnType} {methodName}{genericParameterString}({parameterString});";
     }
 
     private static string GenerateIndexerDeclarationString(IndexerDeclarationSyntax member)
     {
-        var returnType = member.Type.ToFullString().Trim();
+        var returnType = member.ToTrimmedString();
         var accessors = member.AccessorList?.Accessors
-            .Where(x => !x.Modifiers.Any(static m => m.ToString() == "static"))
-            .Where(x => x.Modifiers.Any(static m => m.ToString() == "public") || x.Modifiers.Count == 0)
+            .FilterInstanceMembers()
             .Select(x => $"{x.Keyword};");
-        var accessorString = !accessors.Any() ? "" : string.Join(" ", accessors);
-        var declarationString = $"{returnType} this[int newValue] {{ {accessorString} }}";
-        declarationString += @"
-                ";
-        return declarationString;
+        var accessorString = Any(accessors) ? Empty : JoinSpace(accessors);
+        return $"{returnType} this[int newValue] {{ {accessorString} }}";
     }
 
     private static string GenerateEventDeclarationString(EventDeclarationSyntax member)
     {
-        var eventReturnType = member.Type.ToFullString().Trim();
+        var eventReturnType = member.ToTrimmedString();
         var eventName = member.Identifier.Text;
-        var declarationString = $"event {eventReturnType} {eventName};";
-        declarationString += @"
-                ";
-        return declarationString;
+        return $"event {eventReturnType} {eventName};";
     }
 
     private static string GenerateEventFieldString(EventFieldDeclarationSyntax member)
     {
-        var eventReturnType = member.Declaration.Type.ToFullString().Trim();
-        var variables = member.Declaration.Variables.Select(static v => v.Identifier.Text);
-        var variableString = string.Join(@", 
-                ", variables);
-        var declarationString = $"event {eventReturnType} {variableString};";
-        declarationString += @"
-                ";
-        return declarationString;
+        var declaration = member.Declaration;
+        var eventReturnType = declaration.ToTrimmedString();
+        var variables = declaration.Variables.Select(static v => v.Identifier.Text);
+        var variableString = JoinNewLine(variables);
+        return $"event {eventReturnType} {variableString};";
     }
 
     private static string GeneratePropertyString(PropertyDeclarationSyntax member)
     {
-        var returnType = member.Type?.ToFullString().Trim() ?? "object";
+        var returnType = member.ToTrimmedString() ?? "object";
         var propertyName = member.Identifier.Text;
-        var accessors = member.AccessorList?.Accessors
-            .Where(x => x is not null)
-            .Where(x => !x.Modifiers.Any(static m => m.ToString() == "static"))
-            .Where(x => x.Modifiers.Any(static m => m.ToString() == "public") || x.Modifiers.Count == 0)
+        var accessors = member.AccessorList
+            ?.Accessors
+            .FilterInstanceMembers()
             .Select(x => $"{x.Keyword};");
-        var hasAccessors = accessors != null && accessors.Any();
-        var accessorString = hasAccessors ? string.Join(" ", accessors) : "get;";
-        var declarationString = $"{returnType} {propertyName} {{ {accessorString } }}";
-        declarationString += @"
-                ";
-        return declarationString;
+        var accessorString = Any(accessors) ? JoinSpace(accessors) : "get;";
+        var docString = GenerateXmlDocString(member);
+        return $"{docString}{NewLine}{returnType} {propertyName} {{ {accessorString } }}";
     }
+
+    private static IEnumerable<AccessorDeclarationSyntax> FilterInstanceMembers(
+        this SyntaxList<AccessorDeclarationSyntax> syntaxList)
+        => syntaxList
+            .Where(x => x != null)
+            .Where(x => !x!.Modifiers.Any(static m => m.ToString() == "static"))
+            .Where(x => x!.Modifiers.Any(static m => m.ToString() == "public") || x.Modifiers.Count == 0);
+            
+    private static string ToTrimmedString(this SyntaxNode syntax)
+        => syntax.ToFullString().Trim();
+
+    private static string ToTrimmedString(this BasePropertyDeclarationSyntax syntax)
+        => syntax.Type?.ToTrimmedString() ?? "object";
 }

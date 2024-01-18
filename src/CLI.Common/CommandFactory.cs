@@ -6,7 +6,8 @@ namespace SKCLI;
 [InterfaceGenerator]
 internal sealed partial class CommandFactory
 {
-    public Command Create(string name, string description) => new Command(name, description);
+    public Command Create(string name, string? description = default)
+    => new Command(name, description);
 
     /// <summary>
     /// Creates a command with the specified name, description, handler, and options.
