@@ -5,7 +5,7 @@ using InterfaceGenerator;
 namespace SKCLI;
 
 [InterfaceGenerator]
-internal partial class FunctionsCommandFactory(
+internal sealed partial class FunctionsCommandFactory(
     TextWriter _writer)
     : IFunctionsCommandFactory
 {

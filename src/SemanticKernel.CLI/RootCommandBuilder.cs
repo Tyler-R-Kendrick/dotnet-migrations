@@ -7,7 +7,7 @@ using InterfaceGenerator;
 namespace SKCLI;
 
 [InterfaceGenerator]
-internal partial class RootCommandBuilder(
+internal sealed partial class RootCommandBuilder(
     IRootCommandFactory _rootCommandFactory,
     IPluginCommandFactory _pluginCommandFactory,
     IPluginCommandBuilder _pluginCommandBuilder,

@@ -1,10 +1,4 @@
-using NUnit.Framework;
-using Moq;
-using System.Linq;
-using System.Collections.Generic;
-using System.CommandLine;
 using Microsoft.SemanticKernel.SkillDefinition;
-using SKCLI;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace SemanticKernel.CLI.Tests;

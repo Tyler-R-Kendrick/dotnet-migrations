@@ -1,10 +1,8 @@
-﻿using System.Runtime.CompilerServices;
-using System.CommandLine;
+﻿using System.CommandLine;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 using SKCLI;
-[assembly: InternalsVisibleTo("SemanticKernel.CLI.Tests"), InternalsVisibleTo("DynamicProxyGenAssembly2")]
 
 var _loggerMessage =
     LoggerMessage.Define<string>(LogLevel.Information,

@@ -1,7 +1,4 @@
-using System.CommandLine;
-using System.Runtime.InteropServices;
-using Microsoft.Extensions.Logging;
-using Microsoft.SemanticKernel;
+using System.Reflection;
 
 namespace SemanticKernel.CLI.Tests;
 
@@ -23,8 +20,13 @@ public class ProgramUnitTests
     // [TestCase("-p FunSkill -f Joke")]
     // [TestCase("-p FunSkill -f Joke -?")]
     // [TestCase(@"-p FunSkill -f Joke --input ""Some Text""")]
-    public async Task MainExecutesSuccessfully(string args)
+    public void MainExecutesSuccessfully(string args)
     {
-        await IProgram.Main(args);
+        //TODO: Get the entry point of the assembly "SemanticKernel.CLI" and call it with the args.
+        var assembly = Assembly.LoadFrom("SemanticKernel.CLI.dll");
+        var entryPoint = assembly.EntryPoint;
+
+        Assert.That(entryPoint, Is.Not.Null);
+        entryPoint.Invoke(null, new object[] { new string[] { args } });
     }
 }

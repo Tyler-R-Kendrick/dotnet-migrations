@@ -1,9 +1,7 @@
-using SKCLI;
 using Microsoft.SemanticKernel;
 using Microsoft.Extensions.Logging;
 using System.CommandLine;
 using Microsoft.SemanticKernel.Orchestration;
-using System.Diagnostics.Contracts;
 using Microsoft.SemanticKernel.SkillDefinition;
 
 namespace SemanticKernel.CLI.Tests;

@@ -1,8 +1,5 @@
-using NUnit.Framework;
 using System.CommandLine;
-using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.Orchestration;
 using Microsoft.SemanticKernel.SkillDefinition;
 namespace SemanticKernel.CLI.Tests;
 

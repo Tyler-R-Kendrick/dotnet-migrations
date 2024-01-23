@@ -7,7 +7,7 @@ using InterfaceGenerator;
 namespace SKCLI;
 
 [InterfaceGenerator]
-internal partial class PluginCommandFactory(
+internal sealed partial class PluginCommandFactory(
     IFunctionCommandFactory _functionCommandFactory)
     : IPluginCommandFactory
 {

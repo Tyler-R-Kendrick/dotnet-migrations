@@ -1,4 +1,3 @@
-using NUnit.Framework;
 using System.CommandLine;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;

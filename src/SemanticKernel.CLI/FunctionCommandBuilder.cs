@@ -7,7 +7,7 @@ using InterfaceGenerator;
 namespace SKCLI;
 
 [InterfaceGenerator]
-internal partial class FunctionCommandBuilder(
+internal sealed partial class FunctionCommandBuilder(
     IArgumentFactory _argumentFactory,
     ICommandFactory _commandFactory,
     TextWriter _writer,
