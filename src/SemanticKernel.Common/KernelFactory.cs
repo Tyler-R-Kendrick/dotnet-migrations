@@ -5,7 +5,7 @@ using InterfaceGenerator;
 namespace SKCLI;
 
 [InterfaceGenerator]
-internal partial class KernelFactory
+public partial class KernelFactory
 {
     public IKernel BuildKernel(KernelSettings settings, ILogger logger)
     => new KernelBuilder()

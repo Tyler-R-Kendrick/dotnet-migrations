@@ -15,12 +15,12 @@
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="6.0.0" />
     <PackageReference Include="Microsoft.SemanticKernel" Version="0.19.230804.2-preview" />
     <PackageReference Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
-    <PackageReference Include="System.CommandLine.DragonFruit" Version="0.4.0-alpha.22272.1" />
     <PackageReference Include="System.CommandLine.Hosting" Version="0.4.0-alpha.22272.1" />
     <ProjectReference Include="../InterfaceGenerator/InterfaceGenerator.csproj"
                       OutputItemType="Analyzer"
                       ReferenceOutputAssembly="true" />
     <ProjectReference Include="../CLI.Common/CLI.Common.csproj" />
+    <ProjectReference Include="../SemanticKernel.Common/SemanticKernel.Common.csproj" />
   </ItemGroup>
 
   <ItemGroup>

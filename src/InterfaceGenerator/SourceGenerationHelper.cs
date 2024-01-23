@@ -5,6 +5,7 @@ using System.Text;
 
 namespace InterfaceGenerator;
 
+using static SyntaxBuilderHelper;
 //TODO: Add support for interface inheritance.
 //TODO: Add support for interface name override.
 //TODO: Add support for generic interfaces.
@@ -13,20 +14,6 @@ namespace InterfaceGenerator;
 //TODO: Copy summary documentation from the original class.
 public static class SourceGenerationHelper
 {
-    private const string
-        NewLine = "\r\n",
-        Indent = "\t",
-        Space = " ",
-        Empty = "";
-
-    static string JoinNewLine(IEnumerable<string?> values)
-        => string.Join(NewLine, values.Where(x => x is not null));
-    static string JoinList(IEnumerable<string?>? values)
-        => string.Join(", ", values.Where(x => x is not null));
-    static string JoinSpace(IEnumerable<string?>? values)
-        => string.Join(Space, values.Where(x => x is not null));
-    static bool Any(IEnumerable<string?>? values)
-        => values is not null && values.Any(x => x is not null);
 
     static InterfaceToGenerate GetInterfaceToGenerate(ClassDeclarationSyntax declarationSyntax)
     {
@@ -75,31 +62,17 @@ public static class SourceGenerationHelper
     public static string GenerateExtensionClass(ClassDeclarationSyntax syntax)
     {
         var interfaceToGenerate = GetInterfaceToGenerate(syntax);
-        var sb = new StringBuilder();
-
-        //needed for a nullable context.
-        sb.AppendLine("#nullable enable");
-        sb.AppendLine();
-
-        var @usings = GenerateUsingString(syntax);
-        sb.AppendLine(@usings);
-        sb.AppendLine();
-
-        var @namespace = GenerateNamespaceString(syntax);
-        sb.AppendLine(@namespace);
-        sb.AppendLine();
-
-        var interfaceString = GenerateInterfaceString(interfaceToGenerate);
-        sb.AppendLine(interfaceString);
-        sb.AppendLine();
-
-        var classString = GenerateClassString(syntax, interfaceToGenerate);
-        sb.AppendLine(classString);
-        sb.AppendLine();
-
-        sb.AppendLine("#nullable restore");
-        sb.AppendLine();
-        return sb.ToString();
+        return new StringBuilder()
+            //needed for a nullable context.
+            .AppendLine("#nullable enable")
+            .AppendLine()
+            .GenerateLine(() => GenerateUsingString(syntax))
+            .GenerateLine(() => GenerateNamespaceString(syntax))
+            .GenerateLine(() => GenerateInterfaceString(interfaceToGenerate))
+            .GenerateLine(() => GenerateClassString(syntax, interfaceToGenerate))
+            .AppendLine("#nullable restore")
+            .AppendLine()
+            .ToString();
     }
 
     private static string GenerateClassString(
@@ -257,10 +230,4 @@ public static class SourceGenerationHelper
             .Where(x => x != null)
             .Where(x => !x!.Modifiers.Any(static m => m.ToString() == "static"))
             .Where(x => x!.Modifiers.Any(static m => m.ToString() == "public") || x.Modifiers.Count == 0);
-            
-    private static string ToTrimmedString(this SyntaxNode syntax)
-        => syntax.ToFullString().Trim();
-
-    private static string ToTrimmedString(this BasePropertyDeclarationSyntax syntax)
-        => syntax.Type?.ToTrimmedString() ?? "object";
 }

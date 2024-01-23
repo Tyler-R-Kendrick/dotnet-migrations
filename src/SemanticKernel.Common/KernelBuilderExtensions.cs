@@ -1,5 +1,5 @@
 ﻿using Microsoft.SemanticKernel;
-using SKCLI;
+namespace SKCLI;
 
 internal static class KernelBuilderExtensions
 {

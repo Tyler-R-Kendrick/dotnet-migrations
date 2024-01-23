@@ -3,7 +3,7 @@ using Microsoft.SemanticKernel.SkillDefinition;
 
 namespace SKCLI;
 
-internal static class KernelHelperExtensions
+public static class KernelHelperExtensions
 {
     public static IDictionary<string, IEnumerable<FunctionView>> GetFunctionViews(this IKernel kernel)
     {
