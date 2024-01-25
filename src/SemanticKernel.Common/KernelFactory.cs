@@ -7,8 +7,10 @@ namespace SKCLI;
 [InterfaceGenerator]
 public partial class KernelFactory
 {
-    public Kernel BuildKernel()
-    => Kernel.CreateBuilder()
-        .WithCompletionService()
-        .Build();
+    public Kernel BuildKernel(Action<IKernelBuilder>? configure = null)
+    {
+        var builder = Kernel.CreateBuilder();
+        configure?.Invoke(builder);
+        return builder.Build();
+    }
 }

@@ -1,7 +1,6 @@
 using System.CommandLine;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Planning.Handlebars;
-using System.Diagnostics.Contracts;
 using InterfaceGenerator;
 
 namespace SKCLI;

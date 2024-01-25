@@ -1,4 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.SemanticKernel;
 namespace SKCLI;
 
 /// <summary>
@@ -11,16 +13,16 @@ public static class SemanticCLIHelper
     /// </summary>
     /// <param name="services">The <see cref="IServiceCollection"/> to add the services to.</param>
     /// <returns>The modified <see cref="IServiceCollection"/>.</returns>
-    public static IServiceCollection AddSemanticCLI(this IServiceCollection services)
+    public static IServiceCollection AddSemanticCLI(
+        this IServiceCollection services,
+        Action<IKernelBuilder>? configure = null)
     => services
         .AddCLI()
-        .AddSemanticKernel()
-        //.AddTransient<IFunctionCommandFactory, FunctionCommandFactory>()
+        .AddSemanticKernel(configure)
         .AddSingleton(Console.In)
         .AddSingleton(Console.Out)
-        //.AddTransient<IFunctionCommandBuilder, FunctionCommandBuilder>()
-        //.AddTransient<IPluginCommandBuilder, PluginCommandBuilder>()
-        //.AddTransient<IPluginCommandFactory, PluginCommandFactory>()
-        //.AddTransient<IFunctionsCommandFactory, FunctionsCommandFactory>()
-        .AddTransient<IRootCommandBuilder, RootCommandBuilder>();
+        .AddTransient<IRootCommandBuilder, RootCommandBuilder>()
+        .AddLogging(x => x.AddConsole().AddDebug())
+        .AddTransient(x => x.GetRequiredService<IRootCommandBuilder>()
+            .BuildRootCommand(x.GetRequiredService<Kernel>()));
 }
