@@ -1,4 +1,0 @@
-Given a XAML file written for Microsoft's UWP
-output a XAML file rewritten to be optimized for the Windows App Sdk.
-
-File:{{$input}}

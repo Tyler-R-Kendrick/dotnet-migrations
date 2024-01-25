@@ -25,11 +25,11 @@ var cliConfig = await BuildCommandLine(host)
     .ConfigureAwait(false);
 
 
-static CliConfiguration BuildCommandLine(IHost host)
+static RootCommand BuildCommandLine(IHost host)
 {
-    var rootCommand = new CliRootCommand(@"$ dotnet run ");
+    var rootCommand = new RootCommand(@"$ dotnet run ");
     IConfiguration configuration = host.Services.GetRequiredService<IConfiguration>();
     var command = new ConfigureCommandFactory(configuration).CreateCommand();
     rootCommand.AddCommand(command);
-    return new CliConfiguration(rootCommand);
+    return rootCommand;
 }

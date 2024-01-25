@@ -7,7 +7,7 @@ public partial class GeneratorTestClass(int initialValue)
     public static readonly GeneratorTestClass Instance = new(0);
     private int _testField = initialValue;
     #pragma warning restore CA2211 // Non-constant fields should not be visible
-    public int this[int newValue] { get => TestProperty; set => TestMethod(newValue); }
+    //public int this[int newValue] { get => TestProperty; set => TestMethod(newValue); }
     public int TestProperty { get; init; }
     public int TestProperty2 { get; private set; } = initialValue;
     public int TestProperty3 { get; } = initialValue;
@@ -29,7 +29,7 @@ public partial class GeneratorTestClass(int initialValue)
             }
         }
     }
-    public event EventHandler TestEvent2 = delegate { };
+    //public event EventHandler TestEvent2 = delegate { };
 
     public void TestMethod(int value)
     {
