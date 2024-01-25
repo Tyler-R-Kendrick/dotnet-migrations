@@ -15,12 +15,12 @@ public static class SemanticCLIHelper
     => services
         .AddCLI()
         .AddSemanticKernel()
-        .AddTransient<IFunctionCommandFactory, FunctionCommandFactory>()
+        //.AddTransient<IFunctionCommandFactory, FunctionCommandFactory>()
         .AddSingleton(Console.In)
         .AddSingleton(Console.Out)
-        .AddTransient<IFunctionCommandBuilder, FunctionCommandBuilder>()
-        .AddTransient<IPluginCommandBuilder, PluginCommandBuilder>()
-        .AddTransient<IPluginCommandFactory, PluginCommandFactory>()
-        .AddTransient<IFunctionsCommandFactory, FunctionsCommandFactory>()
+        //.AddTransient<IFunctionCommandBuilder, FunctionCommandBuilder>()
+        //.AddTransient<IPluginCommandBuilder, PluginCommandBuilder>()
+        //.AddTransient<IPluginCommandFactory, PluginCommandFactory>()
+        //.AddTransient<IFunctionsCommandFactory, FunctionsCommandFactory>()
         .AddTransient<IRootCommandBuilder, RootCommandBuilder>();
 }

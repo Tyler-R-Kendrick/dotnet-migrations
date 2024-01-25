@@ -4,21 +4,11 @@ using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 using SKCLI;
 
-var _loggerMessage =
-    LoggerMessage.Define<string>(LogLevel.Information,
-        new EventId(id: 0, name: "ERROR"), "{Message}");
-
 var services = new ServiceCollection()
     .AddSemanticCLI()
     .AddLogging(x => x.AddConsole().AddDebug())
-    .AddSingleton(x => KernelSettings.LoadSettings())
-    .AddSingleton(x => new KernelFactory()
-        .BuildKernel(x.GetRequiredService<KernelSettings>(),
-            x.GetRequiredService<ILogger<IKernel>>()))
     .AddTransient(x => x.GetRequiredService<IRootCommandBuilder>()
-        .BuildRootCommand(
-            context => Console.Out.WriteLine(context.Result),
-            x.GetRequiredService<IKernel>()));
+        .BuildRootCommand(x.GetRequiredService<Kernel>()));
 
 var commandTask = services.BuildServiceProvider()
     .GetRequiredService<RootCommand>()
