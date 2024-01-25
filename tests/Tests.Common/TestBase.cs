@@ -1,6 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 
-namespace SemanticKernel.CLI.Tests;
+namespace Tests.Common;
 
 public abstract class TestBase<T>
     where T : notnull

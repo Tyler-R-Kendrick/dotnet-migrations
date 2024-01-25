@@ -4,7 +4,7 @@ namespace SemanticKernel.CLI.Tests;
 
 public class ProgramUnitTests
 {
-    [TestCase(@"semker ""Do something entertaining.""")]
+    [TestCase(@"semker ""Come up with something fun.""")]
     public void MainExecutesSuccessfully(string args)
     {
         var assembly = Assembly.LoadFrom("SemanticKernel.CLI.dll");

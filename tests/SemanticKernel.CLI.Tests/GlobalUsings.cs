@@ -1,3 +1,3 @@
 global using NUnit.Framework;
-global using SKCLI;
 global using Moq;
+global using Tests.Common;
