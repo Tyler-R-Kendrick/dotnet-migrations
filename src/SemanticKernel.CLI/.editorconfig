@@ -12,7 +12,9 @@ trim_trailing_whitespace = false
 insert_final_newline = false
 
 [*.{cs}]
+dotnet_diagnostic.CA1848.severity = none
 dotnet_diagnostic.CA1859.severity = none
+dotnet_diagnostic.CA2254.severity = none
 dotnet_diagnostic.CS3001.severity = none
 dotnet_diagnostic.CS3002.severity = none
 dotnet_diagnostic.SKEXP0004.severity = none

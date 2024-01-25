@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
 using Microsoft.SemanticKernel;
+using Microsoft.Extensions.Logging;
 namespace SKCLI;
 
 internal static class KernelBuilderExtensions
@@ -10,13 +11,15 @@ internal static class KernelBuilderExtensions
     /// </summary>
     /// <param name="kernelBuilder"></param>
     /// <exception cref="ArgumentException"></exception>
-    internal static IKernelBuilder WithCompletionService(this IKernelBuilder kernelBuilder)
+    internal static IKernelBuilder WithCompletionService(
+        this IKernelBuilder kernelBuilder,
+        ILogger logger)
     {
-        Console.WriteLine($"Using {Env.Var("Global:LlmService")!} service");
+        logger.LogInformation($"Using {Env.Var("Global:LlmService")!} service");
         switch (Env.Var("Global:LlmService")!)
         {
             case "AzureOpenAI":
-                Console.WriteLine($"Using {Env.Var("AzureOpenAI:DeploymentType")!} deployment");
+                logger.LogInformation($"Using {Env.Var("AzureOpenAI:DeploymentType")!} deployment");
                 if (Env.Var("AzureOpenAI:DeploymentType") == "text-completion")
                 {
                     kernelBuilder.Services.AddAzureOpenAITextGeneration(
@@ -38,7 +41,7 @@ internal static class KernelBuilderExtensions
                 break;
 
             case "OpenAI":
-                Console.WriteLine($"Using {Env.Var("OpenAI:Model:Type")!} model");
+                logger.LogInformation($"Using {Env.Var("OpenAI:Model:Type")!} model");
                 if (Env.Var("OpenAI:Model:Type") == "text-completion")
                 {
                     kernelBuilder.Services.AddOpenAITextGeneration(

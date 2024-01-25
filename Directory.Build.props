@@ -4,7 +4,18 @@
         <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
         <CodeAnalysisTreatWarningsAsErrors>true</CodeAnalysisTreatWarningsAsErrors>    
         <AnalysisLevel>latest-Recommended</AnalysisLevel>
+        <TargetFramework Condition="'$(TargetFramework)'==''">net8.0</TargetFramework>
+        <ImplicitUsings Condition="'$(ImplicitUsings)'==''">enable</ImplicitUsings>
+        <LangVersion Condition="'$(LangVersion)'==''">preview</LangVersion>
+        <Nullable Condition="'$(Nullable)'==''">enable</Nullable>
+        <UserSecretsId>395e5318-226a-4ec4-af9b-7f6e2afb7525</UserSecretsId>
     </PropertyGroup>
+
+    <ItemGroup Label="Assembly Info">
+        <InternalsVisibleTo Include="$(AssemblyName).Tests" />
+        <InternalsVisibleTo Include="DynamicProxyGenAssembly2" />
+    </ItemGroup>
+
     <ItemGroup>
         <PackageReference Include="Microsoft.CodeAnalysis.Metrics" Version="*" />
         <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="*">

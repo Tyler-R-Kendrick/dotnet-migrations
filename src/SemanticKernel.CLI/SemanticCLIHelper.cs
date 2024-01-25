@@ -15,14 +15,14 @@ public static class SemanticCLIHelper
     /// <returns>The modified <see cref="IServiceCollection"/>.</returns>
     public static IServiceCollection AddSemanticCLI(
         this IServiceCollection services,
-        Action<IKernelBuilder>? configure = null)
+        Action<ILoggingBuilder>? configureLogging = null,
+        Action<IKernelBuilder>? configureKernel = null)
     => services
         .AddCLI()
-        .AddSemanticKernel(configure)
+        .AddSemanticKernel(configureLogging, configureKernel)
         .AddSingleton(Console.In)
         .AddSingleton(Console.Out)
         .AddTransient<IRootCommandBuilder, RootCommandBuilder>()
-        .AddLogging(x => x.AddConsole().AddDebug())
         .AddTransient(x => x.GetRequiredService<IRootCommandBuilder>()
             .BuildRootCommand(x.GetRequiredService<Kernel>()));
 }

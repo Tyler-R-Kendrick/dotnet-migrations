@@ -7,9 +7,13 @@ public static class SemanticKernelServicesExtensions
 {
     public static IServiceCollection AddSemanticKernel(
         this IServiceCollection services,
+        Action<ILoggingBuilder>? configureLogging = null,
         Action<IKernelBuilder>? configure = null)
     => services
         .AddSingleton<IKernelFactory, KernelFactory>()
+        .AddLogging(configureLogging ?? (x => x.AddConsole()))
         .AddSingleton(x => x.GetRequiredService<IKernelFactory>()
-            .BuildKernel(configure));
+            .BuildKernel(
+                x.GetRequiredService<ILogger<KernelFactory>>(),
+                configure));
 }

@@ -2,6 +2,7 @@ using System.CommandLine;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Planning.Handlebars;
 using InterfaceGenerator;
+using Microsoft.Extensions.Logging;
 
 namespace SKCLI;
 
@@ -9,7 +10,8 @@ namespace SKCLI;
 internal sealed partial class RootCommandBuilder(
     IRootCommandFactory _rootCommandFactory,
     IArgumentFactory _argumentFactory,
-    TextWriter _writer)
+    TextWriter _writer,
+    ILogger<RootCommandBuilder> _logger)
 {
     public RootCommand BuildRootCommand(
         Kernel kernel)
@@ -24,16 +26,18 @@ internal sealed partial class RootCommandBuilder(
             subcommands: []);
         rootCommand.SetHandler(async input =>
         {
-            _writer.WriteLine($"input: {input}");
+            _logger.LogTrace($"input: {input}");
             kernel.ImportPluginFromPromptDirectory("skills");
             var plannerOptions = new HandlebarsPlannerOptions() { AllowLoops = true };
             var planner = new HandlebarsPlanner(plannerOptions);
             var plan = await planner.CreatePlanAsync(kernel, input, CancellationToken.None);
-            _writer.WriteLine($"plan: {plan}");
+            _logger.LogInformation($"input: {plan}");
             var prompt = plan.Prompt;
-            _writer.WriteLine($"prompt: {prompt}");
+            _logger.LogTrace($"prompt: {prompt}");
             var result = await plan.InvokeAsync(kernel);
-            _writer.WriteLine($"result: {result}");
+            result = string.IsNullOrEmpty(result) ? "No results." : result;
+            _logger.LogTrace($"result: {result}");
+            _writer.WriteLine(result);
         }, inputArgument);
         return rootCommand;
     }

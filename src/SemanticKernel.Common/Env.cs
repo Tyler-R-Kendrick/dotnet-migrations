@@ -17,7 +17,7 @@ internal sealed class Env
     {
         var configuration = new ConfigurationBuilder()
             .AddEnvironmentVariables()
-            .AddJsonFile("appsettings.json", optional: true)
+            .AddJsonFile("config/appsettings.json", optional: true)
             .AddUserSecrets<Env>()
             .Build();
 

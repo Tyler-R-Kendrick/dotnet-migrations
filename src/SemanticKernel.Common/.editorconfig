@@ -10,7 +10,10 @@ end_of_line = lf
 charset = utf-8
 trim_trailing_whitespace = false
 insert_final_newline = false
+dotnet_diagnostic.NU1604.severity = none
 
 [*.{cs}]
+dotnet_diagnostic.CA1848.severity = none
+dotnet_diagnostic.CA2254.severity = none
 dotnet_diagnostic.CS3001.severity = none
 dotnet_diagnostic.CS3002.severity = none
