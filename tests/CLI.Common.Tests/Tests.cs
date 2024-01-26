@@ -67,7 +67,7 @@ public class Tests
             genericParameterString = $"<{string.Join(", ", genericParameters)}>";
         }
         var parameters = member.ParameterList?.Parameters.Select(static p => p.ToFullString().Trim());
-        var parameterString = parameters.Any() && parameters != null ? string.Join(", ", parameters) : "";
+        var parameterString = parameters!.Any() && parameters != null ? string.Join(", ", parameters) : "";
         var declarationString = $"{returnType} {methodName}{genericParameterString}({parameterString});";
         declarationString += @"
                 ";

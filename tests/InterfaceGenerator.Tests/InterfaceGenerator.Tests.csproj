@@ -1,16 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
-  <PropertyGroup>
-    <IsPackable>false</IsPackable>
-    <IsTestProject>true</IsTestProject>
-  </PropertyGroup>
+  <Import Project="..\TestProject.props" />
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.*" />
-    <PackageReference Include="NUnit" Version="3.*" />
-    <PackageReference Include="NUnit3TestAdapter" Version="4.*" />
-    <PackageReference Include="NUnit.Analyzers" Version="3.*" />
-    <PackageReference Include="coverlet.collector" Version="6.*" />
     <ProjectReference Include="../../src/InterfaceGenerator/*.csproj"
                       OutputItemType="Analyzer"
                       ReferenceOutputAssembly="true" />

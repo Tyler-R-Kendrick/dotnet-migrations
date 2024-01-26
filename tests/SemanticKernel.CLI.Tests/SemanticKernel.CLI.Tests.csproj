@@ -1,14 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <IsPackable>false</IsPackable>
-    <IsTestProject>true</IsTestProject>
-  </PropertyGroup>
+  <Import Project="..\TestProject.props" />
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.*" />
-    <PackageReference Include="NUnit3TestAdapter" Version="4.*" />
-    <ProjectReference Include="../Tests.Common/*.csproj" />
     <ProjectReference Include="../../src/SemanticKernel.CLI/*.csproj" />
   </ItemGroup>
 
